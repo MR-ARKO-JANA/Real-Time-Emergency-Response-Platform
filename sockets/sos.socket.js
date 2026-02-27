@@ -1,5 +1,6 @@
 const SOS = require('../models/sos.model');
 const User = require('../models/user.model');
+const mongoose = require('mongoose');
 
 // In-Memory State for active fast-tracking, DB is for persistence
 const activeSOS = new Map(); // id -> sos payload
@@ -37,19 +38,49 @@ module.exports = function (io) {
                 status: 'active'
             };
 
-            // Persist to mongo asynchronously
             try {
-                // In a perfect world, we attach the user _id. Mocking a fake user for DB storage strictly for the prototype if auth isn't enforced strictly here yet.
-                // const newDbSos = new SOS({ broadcaster: userId, crisisType: data.type, location: { type: 'Point', coordinates: [data.lng, data.lat] }, isAnonymous: data.isAnon });
-                // await newDbSos.save();
-            } catch (e) {
-                console.error("Failed to persist SOS", e);
-            }
+                // 1. Save new SOS incident to MongoDB
+                const userSession = connectedUsers.get(socket.id);
+                // For hackathon: generate a valid ObjectId if user id isn't one
+                const bId = mongoose.Types.ObjectId.isValid(userSession?.id) ? userSession.id : new mongoose.Types.ObjectId();
 
-            activeSOS.set(sosEvent.id, sosEvent);
-            socket.join(`incident_${sosEvent.id}`); // Victim joins room
-            socket.broadcast.emit('new_sos', sosEvent);
-            socket.emit('sos_confirmed', sosEvent);
+                const newDbSos = new SOS({
+                    broadcaster: bId,
+                    crisisType: data.type,
+                    location: { type: 'Point', coordinates: [data.lng, data.lat] },
+                    isAnonymous: data.isAnon
+                });
+
+                await newDbSos.save();
+
+                sosEvent.dbId = newDbSos._id.toString();
+                activeSOS.set(sosEvent.id, sosEvent);
+                socket.join(`incident_${sosEvent.id}`); // Victim joins room
+
+                // 2. Query $near users within 2km (2000 meters)
+                const nearbyUsers = await User.find({
+                    location: {
+                        $near: {
+                            $geometry: { type: 'Point', coordinates: [data.lng, data.lat] },
+                            $maxDistance: 2000
+                        }
+                    }
+                }).select('_id');
+
+                const nearbyUserIds = nearbyUsers.map(u => u._id.toString());
+
+                // 3. Emit selectively to nearby users' specific active sockets
+                for (const [sId, uData] of connectedUsers.entries()) {
+                    // sId !== socket.id avoids sending it to the broadcaster here
+                    if (sId !== socket.id && nearbyUserIds.includes(String(uData.id))) {
+                        io.to(sId).emit('new_sos', sosEvent);
+                    }
+                }
+
+                socket.emit('sos_confirmed', sosEvent);
+            } catch (e) {
+                console.error("Failed to persist and broadcast SOS", e);
+            }
         });
 
         // 3. Resolve SOS
