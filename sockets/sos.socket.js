@@ -6,6 +6,19 @@ const mongoose = require('mongoose');
 const activeSOS = new Map(); // id -> sos payload
 const connectedUsers = new Map(); // socketId -> user payload
 
+// Calculates distance between two coordinates in meters
+function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // Earth radius in meters
+    const rad = Math.PI / 180;
+    const dLat = (lat2 - lat1) * rad;
+    const dLon = (lon2 - lon1) * rad;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * rad) * Math.cos(lat2 * rad) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
 module.exports = function (io) {
     io.on('connection', (socket) => {
         console.log('Client connected:', socket.id);
@@ -44,36 +57,37 @@ module.exports = function (io) {
                 // For hackathon: generate a valid ObjectId if user id isn't one
                 const bId = mongoose.Types.ObjectId.isValid(userSession?.id) ? userSession.id : new mongoose.Types.ObjectId();
 
-                const newDbSos = new SOS({
-                    broadcaster: bId,
-                    crisisType: data.type,
-                    location: { type: 'Point', coordinates: [data.lng, data.lat] },
-                    isAnonymous: data.isAnon
-                });
+                if (mongoose.connection.readyState === 1) {
+                    const newDbSos = new SOS({
+                        broadcaster: bId,
+                        crisisType: data.type,
+                        location: { type: 'Point', coordinates: [data.lng, data.lat] },
+                        isAnonymous: data.isAnon
+                    });
+                    await newDbSos.save();
+                    sosEvent.dbId = newDbSos._id.toString();
+                } else {
+                    throw new Error("MongoDB not connected natively");
+                }
+            } catch (dbError) {
+                console.warn("MongoDB Save Failed (ignoring for in-memory broadcast):", dbError.message);
+                sosEvent.dbId = `MOCK-DB-${Date.now()}`;
+            }
 
-                await newDbSos.save();
-
-                sosEvent.dbId = newDbSos._id.toString();
+            try {
                 activeSOS.set(sosEvent.id, sosEvent);
                 socket.join(`incident_${sosEvent.id}`); // Victim joins room
 
-                // 2. Query $near users within 2km (2000 meters)
-                const nearbyUsers = await User.find({
-                    location: {
-                        $near: {
-                            $geometry: { type: 'Point', coordinates: [data.lng, data.lat] },
-                            $maxDistance: 2000
-                        }
-                    }
-                }).select('_id');
-
-                const nearbyUserIds = nearbyUsers.map(u => u._id.toString());
-
-                // 3. Emit selectively to nearby users' specific active sockets
+                // 2. Broadcast to connected users within 2km using Haversine formula
                 for (const [sId, uData] of connectedUsers.entries()) {
-                    // sId !== socket.id avoids sending it to the broadcaster here
-                    if (sId !== socket.id && nearbyUserIds.includes(String(uData.id))) {
-                        io.to(sId).emit('new_sos', sosEvent);
+                    // sId !== socket.id avoids sending it back to the broadcaster
+                    if (sId !== socket.id) {
+                        const dist = getDistance(data.lat, data.lng, uData.lat, uData.lng);
+
+                        // Check if within 2000 meters (2km)
+                        if (dist <= 2000) {
+                            io.to(sId).emit('new_sos', sosEvent);
+                        }
                     }
                 }
 

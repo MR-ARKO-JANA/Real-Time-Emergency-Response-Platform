@@ -7,8 +7,8 @@ const connectDB = async () => {
         await mongoose.connect(uri);
         console.log('MongoDB Connected Successfully');
     } catch (error) {
-        console.error('MongoDB Connection Error:', error);
-        process.exit(1);
+        console.error('MongoDB Connection Error: Running in offline prototype mode.');
+        // Don't exit process, we want the WebSockets to keep running in-memory
     }
 };
 

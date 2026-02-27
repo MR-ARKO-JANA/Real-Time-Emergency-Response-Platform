@@ -6,6 +6,13 @@ const User = require('../models/user.model');
 exports.register = async (req, res) => {
     try {
         const { name, email, password, role, location } = req.body;
+        const mongoose = require('mongoose');
+
+        // Offline Hackathon Prototype Fallback
+        if (mongoose.connection.readyState !== 1) {
+            console.warn(`[Offline Mode] Faking registration for ${email}`);
+            return res.status(201).json({ msg: 'User registered successfully (Offline Mode)' });
+        }
 
         // Check if user exists
         let user = await User.findOne({ email });
@@ -48,6 +55,19 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
+        const mongoose = require('mongoose');
+        const jwt = require('jsonwebtoken');
+
+        // Offline Hackathon Prototype Fallback
+        if (mongoose.connection.readyState !== 1) {
+            console.warn(`[Offline Mode] Faking login for ${email}`);
+            const secret = process.env.JWT_SECRET || 'secret123';
+            const fakeToken = jwt.sign({ user: { id: `offline-${Date.now()}` } }, secret, { expiresIn: '5h' });
+            return res.json({
+                token: fakeToken,
+                user: { id: `offline-${Date.now()}`, name: email.split('@')[0], role: 'rescuer' }
+            });
+        }
 
         const user = await User.findOne({ email });
         if (!user) {
