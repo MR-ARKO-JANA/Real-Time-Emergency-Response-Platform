@@ -1,40 +1,56 @@
 const SOS = require('../models/sos.model');
 
-// Mock AI Logic Endpoint
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+// Helper to get genAI instance lazily
+const getGenAI = () => {
+    if (!process.env.GEMINI_API_KEY) {
+        throw new Error("GEMINI_API_KEY is missing from environment variables.");
+    }
+    return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+};
+
+// Real AI Logic Endpoint using Gemini
 exports.getGuidance = async (req, res) => {
     try {
-        const { crisisType } = req.body;
+        const { crisisType, description } = req.body;
 
-        // Simulating external LLM API
-        const mockData = {
-            medical: {
-                steps: [
-                    "Check for responsiveness. Tap the shoulder and shout 'Are you OK?'",
-                    "If unresponsive and not breathing normally, call 911.",
-                    "Begin chest compressions (100-120 per minute)."
-                ],
-                summary: "Medical emergency reported. Victim is unresponsive. CPR initiated by bystander. Location: 100m from Central Park entrance."
-            },
-            fire: {
-                steps: ["Evacuate the area immediately.", "Do not use elevators.", "Stay low under smoke."],
-                summary: "Fire reported in building. Evacuation in progress. Need fire suppression unit."
-            },
-            security: {
-                steps: ["Find a safe, lockable room.", "Stay quiet and mute your phone.", "Do not confront the threat."],
-                summary: "Security threat reported. Caller is hiding. Requesting immediate police dispatch."
-            },
-            other: {
-                steps: ["Assess the situation from a safe distance.", "Do not intervene directly.", "Wait for authorized personnel."],
-                summary: "General emergency reported. Caller is observing safely."
+        if (!crisisType) {
+            return res.status(400).json({ error: 'crisisType is required.' });
+        }
+
+        const genAI = getGenAI();
+        const model = genAI.getGenerativeModel({
+            model: "gemini-flash-lite-latest",
+            generationConfig: {
+                responseMimeType: "application/json",
             }
-        };
+        });
 
-        setTimeout(() => {
-            res.json(mockData[crisisType] || mockData.other);
-        }, 1000); // simulate API latency
+        const prompt = `You are an expert AI Crisis Assistant for an emergency response platform in India.
+You must provide immediate, life-saving guidance based on the provided crisis type and description. You should route people to Indian emergency services (e.g., dial 112 for National Emergency, 108 for Ambulance, 100 for Police, 101 for Fire).
+
+CRISIS TYPE: ${crisisType}
+DESCRIPTION: ${description || "No description provided."}
+
+Return a STRICT JSON object with EXACTLY the following three keys:
+1. "firstResponseGuidance": An array of 3-4 string elements. Each string is a brief, immediate, actionable step a bystander in India should take right now.
+2. "emergencySummary": A short, dense paragraph summarizing the situation, designed to be read aloud to an Indian emergency dispatcher (such as a 112 operator).
+3. "debriefPrompt": A single string question to ask the responder after the SOS is resolved to verify the outcome or gather final details.
+
+Output only valid JSON, nothing else.`;
+
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text();
+
+        // Parse the generated JSON
+        const responseData = JSON.parse(responseText);
+
+        return res.status(200).json(responseData);
+
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error("AI Guidance Error:", err.message);
+        return res.status(500).json({ error: 'Failed to generate AI guidance.' });
     }
 };
 

@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeAi = document.getElementById('close-ai');
   const aiGuidance = document.getElementById('ai-guidance');
   const aiSummary = document.getElementById('ai-summary');
+  const aiStatusDot = document.getElementById('ai-status-dot');
 
   const chatPanel = document.getElementById('chat-panel');
   const closeChat = document.getElementById('close-chat');
@@ -339,11 +340,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function generateAIGuidance(type) {
     // Show shimmers
+    if (aiStatusDot) {
+      aiStatusDot.className = 'ai-status-dot';
+      aiStatusDot.title = 'AI Connecting...';
+    }
     aiGuidance.innerHTML = `<div class="loading-shimmer ai-shimmer"></div><div class="loading-shimmer ai-shimmer"></div>`;
     aiSummary.innerHTML = `<div class="loading-shimmer ai-shimmer" style="height: 60px;"></div>`;
 
     try {
-      const response = await fetch('/api/ai-guidance', {
+      const response = await fetch('/api/sos/ai-guidance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ crisisType: type })
@@ -351,19 +356,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const data = await response.json();
 
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch AI guidance');
+      }
+
       let html = '';
-      data.steps.forEach((step, i) => {
-        html += `<div class="ai-step" style="animation-delay: ${i * 0.2}s">${i + 1}. ${step}</div>`;
-      });
+      if (data.firstResponseGuidance && Array.isArray(data.firstResponseGuidance)) {
+        data.firstResponseGuidance.forEach((step, i) => {
+          html += `<div class="ai-step" style="animation-delay: ${i * 0.2}s">${i + 1}. ${step}</div>`;
+        });
+      }
       aiGuidance.innerHTML = html;
 
       aiSummary.innerHTML = `
-            ${data.summary}
+            ${data.emergencySummary || 'Summary not available.'}
             <button class="icon-btn btn-copy" title="Copy to clipboard"><i class="ph ph-copy"></i></button>
         `;
+
+      if (aiStatusDot) {
+        aiStatusDot.className = 'ai-status-dot online';
+        aiStatusDot.title = 'AI Online';
+      }
     } catch (err) {
       console.error("AI Error:", err);
       aiGuidance.innerHTML = "<p style='color:var(--primary)'>Failed to load AI guidance.</p>";
+      if (aiStatusDot) {
+        aiStatusDot.className = 'ai-status-dot offline';
+        aiStatusDot.title = 'AI Offline';
+      }
     }
   }
 
