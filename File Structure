@@ -1,0 +1,27 @@
+Nit-jsr/
+├── config/
+│   └── db.js                  # Database connection configuration
+├── controllers/
+│   ├── auth.controller.js     # Logic for authentication (login, register)
+│   └── sos.controller.js      # Logic for SOS events and alerts
+├── middleware/
+│   └── auth.middleware.js     # JWT verification and route protection
+├── models/
+│   ├── sos.model.js           # Mongoose schema for SOS alerts
+│   └── user.model.js          # Mongoose schema for User profiles
+├── public/                    # Frontend files (Static Assets)
+│   ├── index.html             # Landing/Home page
+│   ├── authentication.html    # Login and Registration page
+│   ├── admin.html             # Administrative dashboard
+│   ├── app.js                 # Frontend JavaScript logic
+│   └── styles.css             # Styling for the web application
+├── routes/
+│   ├── auth.routes.js         # API endpoints for authentication
+│   └── sos.routes.js          # API endpoints for SOS functionality
+├── sockets/
+│   └── sos.socket.js          # Real-time WebSocket logic using Socket.io
+├── .env                       # Environment variables (Secrets/Config)
+├── .gitignore                 # Files and folders to ignore in Git
+├── package.json               # Node.js dependencies and scripts
+├── server.js                  # Main entry point for the backend server
+└── README.md                  # Project documentation
