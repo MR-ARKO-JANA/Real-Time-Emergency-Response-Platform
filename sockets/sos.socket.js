@@ -47,40 +47,16 @@ module.exports = function (io) {
             }
 
             activeSOS.set(sosEvent.id, sosEvent);
+            socket.join(`incident_${sosEvent.id}`); // Victim joins room
             socket.broadcast.emit('new_sos', sosEvent);
             socket.emit('sos_confirmed', sosEvent);
-
-            // Mock Auto-Assign Responders for Prototype feeling
-            setTimeout(() => {
-                if (activeSOS.has(sosEvent.id)) {
-                    const mock_res = [
-                        { id: 'm1', name: "Dr. Sarah", skill: "Doctor", img: "44", time: "2 min" },
-                        { id: 'm2', name: "Mike T.", skill: "CPR Cert", img: "59", time: "4 min" }
-                    ];
-
-                    mock_res.forEach((m, i) => {
-                        setTimeout(() => {
-                            if (activeSOS.has(sosEvent.id)) {
-                                m.lat = data.lat + (Math.random() - 0.5) * 0.01;
-                                m.lng = data.lng + (Math.random() - 0.5) * 0.01;
-
-                                const event = activeSOS.get(sosEvent.id);
-                                event.responders.push(m);
-
-                                io.to(sosEvent.broadcasterId).emit('responder_assigned', { sosId: sosEvent.id, responder: m });
-                                io.emit('admin_update', Array.from(activeSOS.values()));
-                            }
-                        }, 1000 + (2500 * i));
-                    });
-                }
-            }, 2000);
         });
 
         // 3. Resolve SOS
         socket.on('resolve_sos', async (data) => {
             if (activeSOS.has(data.sosId)) {
-                // Here we would also update the MongoDB record status to 'resolved'
                 socket.broadcast.emit('sos_resolved', { sosId: data.sosId });
+                io.to(`incident_${data.sosId}`).emit('chat_closed', { sosId: data.sosId });
                 activeSOS.delete(data.sosId);
                 io.emit('admin_update', Array.from(activeSOS.values()));
                 console.log(`SOS Resolved: ${data.sosId}`);
@@ -94,10 +70,41 @@ module.exports = function (io) {
                 const user = connectedUsers.get(socket.id);
 
                 if (user) {
-                    const responderData = { id: user.id, name: user.name, skill: user.skill, lat: user.lat, lng: user.lng, img: 11, time: "3 min" };
+                    socket.join(`incident_${data.sosId}`); // Responder joins room
+                    const responderData = { id: user.id, name: user.name, skill: user.skill, lat: user.lat, lng: user.lng, img: 11, time: "Active" };
                     event.responders.push(responderData);
+
                     io.to(event.broadcasterId).emit('responder_assigned', { sosId: data.sosId, responder: responderData });
+                    io.to(`incident_${data.sosId}`).emit('new_message', {
+                        sender: 'System',
+                        text: `${user.name} has joined the rescue operation!`,
+                        type: 'system'
+                    });
                 }
+            }
+        });
+
+        // 5. Chat Messaging
+        socket.on('send_message', (data) => {
+            const user = connectedUsers.get(socket.id);
+            if (user && data.sosId) {
+                io.to(`incident_${data.sosId}`).emit('new_message', {
+                    sender: user.name,
+                    senderId: socket.id,
+                    text: data.text,
+                    timestamp: new Date().toISOString()
+                });
+            }
+        });
+
+        // 6. Live Tracking
+        socket.on('responder_moved', (data) => {
+            if (data.sosId) {
+                io.to(`incident_${data.sosId}`).emit('responder_moved', {
+                    responderId: socket.id,
+                    lat: data.lat,
+                    lng: data.lng
+                });
             }
         });
 
@@ -108,6 +115,7 @@ module.exports = function (io) {
             for (const [id, ev] of activeSOS.entries()) {
                 if (ev.broadcasterId === socket.id) {
                     socket.broadcast.emit('sos_resolved', { sosId: id });
+                    io.to(`incident_${id}`).emit('chat_closed', { sosId: id });
                     activeSOS.delete(id);
                 }
             }

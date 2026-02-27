@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NearHelp Authentication</title>
+    <script>
+        if (localStorage.getItem("token")) {
+            window.location.href = "index.html";
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            padding: 30px;
+            border-radius: 20px;
+            width: 380px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .tabs button {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tabs .active {
+            border-color: #ff3b3b;
+            color: #ff3b3b;
+        }
+
+        form {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        form.active {
+            display: flex;
+        }
+
+        input,
+        select {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: #1e293b;
+            color: white;
+            outline: none;
+        }
+
+        button.submit-btn {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: #ff3b3b;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        button.submit-btn:hover {
+            background: #ff1f1f;
+        }
+
+        .small-text {
+            font-size: 12px;
+            opacity: 0.6;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h2>NearHelp Access</h2>
+
+        <div class="tabs">
+            <button id="signinTab" class="active">Sign In</button>
+            <button id="signupTab">Sign Up</button>
+        </div>
+
+        <!-- SIGN IN -->
+        <form id="signinForm" class="active">
+            <input type="email" id="loginEmail" placeholder="Email Address" required>
+            <input type="password" id="loginPassword" placeholder="Password" required>
+            <button type="submit" class="submit-btn" id="loginBtn">Login</button>
+        </form>
+
+        <!-- SIGN UP -->
+        <form id="signupForm">
+            <input type="text" id="signupName" placeholder="Full Name" required>
+            <input type="email" id="signupEmail" placeholder="Email Address" required>
+            <input type="password" id="signupPassword" placeholder="Password" required>
+
+            <select id="signupRole" required>
+                <option value="">Select Role</option>
+                <option value="doctor">Doctor</option>
+                <option value="police">Police</option>
+                <option value="firefighter">Firefighter</option>
+                <option value="volunteer">Volunteer</option>
+                <option value="other">Other</option>
+            </select>
+
+            <input type="text" id="signupLocation" placeholder="Detecting Location..." readonly>
+
+            <button type="submit" class="submit-btn" id="signupBtn">Create Account</button>
+        </form>
+
+        <div class="small-text">Your location is used for emergency matching only.</div>
+
+    </div>
+
+    <script>
+        const signinTab = document.getElementById("signinTab");
+        const signupTab = document.getElementById("signupTab");
+        const signinForm = document.getElementById("signinForm");
+        const signupForm = document.getElementById("signupForm");
+
+        signinTab.onclick = () => {
+            signinTab.classList.add("active");
+            signupTab.classList.remove("active");
+            signinForm.classList.add("active");
+            signupForm.classList.remove("active");
+        }
+
+        signupTab.onclick = () => {
+            signupTab.classList.add("active");
+            signinTab.classList.remove("active");
+            signupForm.classList.add("active");
+            signinForm.classList.remove("active");
+        }
+
+        // Detect Location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+                document.getElementById("signupLocation").value =
+                    position.coords.latitude + "," + position.coords.longitude;
+            });
+        }
+
+        // Signup API
+        signupForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const userData = {
+                name: document.getElementById("signupName").value,
+                email: document.getElementById("signupEmail").value,
+                password: document.getElementById("signupPassword").value,
+                role: document.getElementById("signupRole").value,
+                location: document.getElementById("signupLocation").value
+            };
+
+            try {
+                const res = await fetch("/api/auth/register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(userData)
+                });
+
+                const data = await res.json();
+                alert(data.msg);
+                if (res.ok) signinTab.click();
+            } catch (err) {
+                alert("Server error connecting to backend");
+            }
+        });
+
+        // Login API
+        signinForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const loginData = {
+                email: document.getElementById("loginEmail").value,
+                password: document.getElementById("loginPassword").value
+            };
+
+            try {
+                const res = await fetch("/api/auth/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(loginData)
+                });
+
+                const data = await res.json();
+
+                if (data.token) {
+                    localStorage.setItem("token", data.token);
+                    window.location.href = "index.html";
+                } else {
+                    alert(data.msg);
+                }
+            } catch (err) {
+                alert("Server error connecting to backend");
+            }
+        });
+    </script>
+
+</body>
+
+</html>

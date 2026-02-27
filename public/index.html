@@ -1,26 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+  <script>
+    if (!localStorage.getItem('token')) {
+      window.location.href = 'authentication.html';
+    }
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NearHelp - Broadcast SOS</title>
-  
+
   <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
   <!-- Phosphor Icons (for premium look) -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
-  
+
   <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
 
   <!-- Map Container -->
   <div id="map"></div>
-  
+
   <!-- Header overlay -->
   <header class="glass-header">
     <div class="logo">
@@ -48,7 +57,7 @@
   <div class="action-panel idle-panel" id="idle-panel">
     <h2>Need Urgent Help?</h2>
     <p>Alert neighbours within a 1km radius instantly.</p>
-    
+
     <div class="crisis-grid">
       <div class="crisis-card" data-type="medical">
         <i class="ph-fill ph-heartbeat"></i>
@@ -67,12 +76,12 @@
         <span>Other</span>
       </div>
     </div>
-    
+
     <button class="btn-sos primary-pulse" id="btn-trigger-sos">
       <span>Hold to Broadcast SOS</span>
       <div class="pulse-ring"></div>
     </button>
-    
+
     <div class="anonymous-toggle-container">
       <label class="checkbox-container">
         <input type="checkbox" id="anon-toggle">
@@ -89,7 +98,7 @@
       <h2>Broadcasting SOS...</h2>
       <span class="crisis-badge" id="active-crisis-badge">Medical</span>
     </div>
-    
+
     <div class="stats-row">
       <div class="stat-box">
         <span class="stat-val" id="notified-count">0</span>
@@ -104,7 +113,7 @@
         <span class="stat-label">Nearest ETA</span>
       </div>
     </div>
-    
+
     <div class="responders-list" id="responders-list">
       <!-- Generated via JS -->
       <div class="empty-state">Waiting for nearby responders to accept...</div>
@@ -112,7 +121,7 @@
 
     <button class="btn-resolve" id="btn-resolve-sos">Mark as Resolved</button>
   </div>
-  
+
   <!-- AI Crisis Assistant Panel -->
   <div class="ai-assistant-panel" id="ai-panel">
     <div class="ai-header">
@@ -137,24 +146,49 @@
       </div>
     </div>
   </div>
-  
+
   <button class="fab-ai hidden" id="fab-ai">
     <i class="ph-fill ph-magic-wand"></i>
   </button>
 
+  <!-- Chat Room Panel -->
+  <div class="chat-room-panel hidden" id="chat-panel">
+    <div class="chat-header">
+      <div class="chat-info">
+        <i class="ph-fill ph-chat-teardrop-dots"></i>
+        <div>
+          <span class="chat-title">Incident Chat</span>
+          <span class="chat-subtitle" id="chat-room-id">#SOS-1234</span>
+        </div>
+      </div>
+      <button class="icon-btn close-chat" id="close-chat"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="chat-messages" id="chat-messages">
+      <!-- Messages appear here -->
+      <div class="chat-welcome">
+        <i class="ph-fill ph-lock-key"></i>
+        <p>This is a secure room for this incident. Only verified responders and the victim are here.</p>
+      </div>
+    </div>
+    <div class="chat-input-area">
+      <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off">
+      <button id="btn-send-chat"><i class="ph-fill ph-paper-plane-right"></i></button>
+    </div>
+  </div>
+
   <!-- Notification Toast -->
   <div class="toast-container" id="toast-container"></div>
-  
+
   <!-- Resolution / Rating Modal -->
   <div class="modal overlay hidden" id="resolve-modal">
     <div class="modal-content glass-panel">
       <h2>Crisis Resolved</h2>
       <p>Please rate the responders who helped you.</p>
-      
+
       <div class="rating-list" id="rating-list">
         <!-- Rendered by JS -->
       </div>
-      
+
       <div class="modal-actions">
         <button class="btn-secondary" id="btn-skip-rating">Skip</button>
         <button class="btn-primary" id="btn-submit-rating">Submit Ratings</button>
@@ -163,9 +197,11 @@
   </div>
 
   <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <!-- Socket.io Mock (for now we simulate, but client library added for realism) -->
   <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
   <script src="app.js"></script>
 </body>
+
 </html>

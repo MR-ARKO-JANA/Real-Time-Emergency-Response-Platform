@@ -7,6 +7,11 @@ const UserSchema = new mongoose.Schema({
     },
     phone: {
         type: String,
+        unique: true,
+        sparse: true
+    },
+    email: {
+        type: String,
         required: true,
         unique: true
     },
@@ -16,10 +21,9 @@ const UserSchema = new mongoose.Schema({
     },
     skills: [{
         type: String
-    }], // e.g., 'CPR', 'Doctor', 'Firefighter'
+    }],
     role: {
         type: String,
-        enum: ['citizen', 'admin'],
         default: 'citizen'
     },
     rating: {
@@ -33,7 +37,20 @@ const UserSchema = new mongoose.Schema({
     isSuspended: {
         type: Boolean,
         default: false
+    },
+    location: {
+        type: {
+            type: String,
+            enum: ['Point'],
+            default: 'Point'
+        },
+        coordinates: {
+            type: [Number], // [lng, lat]
+            default: [0, 0]
+        }
     }
 }, { timestamps: true });
+
+UserSchema.index({ location: '2dsphere' });
 
 module.exports = mongoose.model('User', UserSchema);

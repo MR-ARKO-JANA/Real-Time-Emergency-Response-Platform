@@ -22,34 +22,42 @@ document.addEventListener('DOMContentLoaded', () => {
   const aiGuidance = document.getElementById('ai-guidance');
   const aiSummary = document.getElementById('ai-summary');
 
+  const chatPanel = document.getElementById('chat-panel');
+  const closeChat = document.getElementById('close-chat');
+  const chatMessages = document.getElementById('chat-messages');
+  const chatInput = document.getElementById('chat-input');
+  const btnSendChat = document.getElementById('btn-send-chat');
+  const chatRoomIdLabel = document.getElementById('chat-room-id');
+
   const resolveModal = document.getElementById('resolve-modal');
   const ratingList = document.getElementById('rating-list');
   const btnSkipRating = document.getElementById('btn-skip-rating');
   const btnSubmitRating = document.getElementById('btn-submit-rating');
   const toastContainer = document.getElementById('toast-container');
   const btnDashboard = document.getElementById('btn-dashboard');
+  const responderToggle = document.getElementById('responder-toggle');
 
   // --------- State ---------
   let map, userMarker, sosMarker;
   let simulatedResponders = [];
   let responderMarkers = {};
   let isBroadcasting = false;
+  let isResponder = false;
   let selectedCrisis = 'medical';
-  let userLat = 51.505; // Default Mock Location (London or arbitrary)
+  let userLat = 51.505;
   let userLng = -0.09;
-  let simInterval;
+  let activeSosId = null;
+  let watchId = null;
 
   // --------- Map Initialization ---------
   function initMap() {
     map = L.map(mapElement, { zoomControl: false }).setView([userLat, userLng], 15);
 
-    // Using standard dark tiles or styled OSM
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; OpenStreetMap | NearHelp',
       maxZoom: 19
     }).addTo(map);
 
-    // Initial User Location Pin (Idle)
     const userIcon = L.divIcon({
       className: 'custom-marker',
       html: `<div style="width:16px;height:16px;background:#3b82f6;border-radius:50%;border:3px solid white;box-shadow:0 0 10px rgba(0,0,0,0.5);"></div>`,
@@ -57,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     userMarker = L.marker([userLat, userLng], { icon: userIcon }).addTo(map);
 
-    // Request Real Geolocation
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -68,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
           socket.emit('update_location', { lat: userLat, lng: userLng });
         },
         (error) => {
-          console.warn("Geolocation access denied or failed, using default location.");
+          console.warn("Geolocation access denied or failed.");
         }
       );
     }
@@ -76,7 +83,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --------- UI Interaction ---------
 
-  // Select Crisis Type
+  responderToggle.addEventListener('change', (e) => {
+    isResponder = e.target.checked;
+    showToast(isResponder ? "Responder Mode Enabled" : "Responder Mode Disabled");
+  });
+
   crisisCards.forEach(card => {
     card.addEventListener('click', () => {
       crisisCards.forEach(c => c.classList.remove('selected'));
@@ -85,59 +96,95 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Default select first
   crisisCards[0].classList.add('selected');
 
-  // Trigger SOS
   btnTriggerSos.addEventListener('click', () => {
     const isAnon = anonToggle.checked;
     startSosBroadcast(selectedCrisis, isAnon);
   });
 
-  // Resolve SOS
   btnResolveSos.addEventListener('click', () => {
     stopSosBroadcast();
     showResolveModal();
   });
 
-  // AI Panel
   fabAi.addEventListener('click', () => aiPanel.classList.add('open'));
   closeAi.addEventListener('click', () => aiPanel.classList.remove('open'));
 
-  // Dashboard Nav
+  closeChat.addEventListener('click', () => chatPanel.classList.add('hidden'));
+
   btnDashboard.addEventListener('click', () => window.location.href = 'admin.html');
 
-  // Modal Actions
+  const btnLogout = document.getElementById('btn-logout');
+  if (btnLogout) {
+    btnLogout.addEventListener('click', () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = 'authentication.html';
+    });
+  }
+
   btnSkipRating.addEventListener('click', hideResolveModal);
   btnSubmitRating.addEventListener('click', () => {
     showToast('<i class="ph-fill ph-check-circle"></i> Ratings submitted successfully');
     hideResolveModal();
   });
 
-  // --------- Core Application Logic (Mocked) ---------
+  // --------- Messaging Logic ---------
 
-  // --------- Socket.IO Real-Time Engine ---------
+  function sendMessage() {
+    const text = chatInput.value.trim();
+    if (text && activeSosId) {
+      socket.emit('send_message', { sosId: activeSosId, text });
+      chatInput.value = '';
+    }
+  }
 
-  const socket = io(); // Connects to the same origin
+  btnSendChat.addEventListener('click', sendMessage);
+  chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+
+  function addChatMessage(msg) {
+    const div = document.createElement('div');
+    if (msg.type === 'system') {
+      div.className = 'message system';
+      div.innerText = msg.text;
+    } else {
+      const isMe = msg.senderId === socket.id;
+      div.className = `message ${isMe ? 'sent' : 'received'}`;
+      div.innerHTML = `
+        <span class="msg-sender">${isMe ? 'You' : msg.sender}</span>
+        ${msg.text}
+      `;
+    }
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function openChat(sosId) {
+    activeSosId = sosId;
+    chatRoomIdLabel.innerText = `#${sosId}`;
+    chatPanel.classList.remove('hidden');
+  }
+
+  // --------- WebSocket Event Listeners ---------
+
+  const socket = io();
   let currentSosId = null;
 
-  // Track My Location (Simulated)
   setInterval(() => {
     socket.emit('update_location', { lat: userLat, lng: userLng });
   }, 10000);
 
-  // Initial Location
   socket.emit('update_location', { lat: userLat, lng: userLng });
 
   function startSosBroadcast(type, isAnon) {
     isBroadcasting = true;
-
-    // Update UI Panels
     idlePanel.classList.add('hidden');
     activePanel.classList.remove('hidden');
     activeCrisisBadge.innerText = type.charAt(0).toUpperCase() + type.slice(1);
 
-    // Add glowing SOS pin to map
     map.removeLayer(userMarker);
     const sosIcon = L.divIcon({
       className: 'custom-marker',
@@ -146,18 +193,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     sosMarker = L.marker([userLat, userLng], { icon: sosIcon }).addTo(map);
 
-    // Map radius circle
     const radius = L.circle([userLat, userLng], {
-      color: '#f43f5e', fillOpacity: 0.1, radius: 1000 // 1km radius
+      color: '#f43f5e', fillOpacity: 0.1, radius: 1000
     }).addTo(map);
     sosMarker.radiusLayer = radius;
 
-    // Trigger AI Generation (Backend)
     fabAi.classList.remove('hidden');
     aiPanel.classList.add('open');
     generateAIGuidance(type);
 
-    // Emit Real WebSocket Event
     socket.emit('trigger_sos', { type, lat: userLat, lng: userLng, isAnon });
 
     statNotified.innerText = 'Searching...';
@@ -172,38 +216,37 @@ document.addEventListener('DOMContentLoaded', () => {
       currentSosId = null;
     }
 
-    // Reset UI
     activePanel.classList.add('hidden');
     idlePanel.classList.remove('hidden');
     aiPanel.classList.remove('open');
+    chatPanel.classList.add('hidden');
     fabAi.classList.add('hidden');
 
-    // Reset Map
+    if (watchId) {
+      navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+    }
+
     if (sosMarker) {
       if (sosMarker.radiusLayer) map.removeLayer(sosMarker.radiusLayer);
       map.removeLayer(sosMarker);
     }
     userMarker.addTo(map);
 
-    // Clear Responders
     Object.values(responderMarkers).forEach(m => map.removeLayer(m));
     responderMarkers = {};
     simulatedResponders = [];
     respondersList.innerHTML = '<div class="empty-state">Waiting for nearby responders to accept...</div>';
 
-    // Reset Stats
     statNotified.innerText = '0';
     statResponds.innerText = '0';
     statEta.innerText = '--';
   }
 
-  // --- WebSocket Event Listeners ---
-
   socket.on('sos_confirmed', (data) => {
     currentSosId = data.id;
-    // Simulate quick notification count increment
-    setTimeout(() => { statNotified.innerText = '42'; }, 800);
-    setTimeout(() => { statNotified.innerText = '118'; }, 1500);
+    activeSosId = data.id;
+    setTimeout(() => { statNotified.innerText = '12'; }, 1000);
   });
 
   socket.on('responder_assigned', (data) => {
@@ -212,14 +255,84 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Example listener for responders seeing someone else's SOS
   socket.on('new_sos', (data) => {
-    if (!isBroadcasting) {
+    if (!isBroadcasting && isResponder) {
       showToast(`<i class="ph-fill ph-warning-circle" style="color:var(--primary)"></i> Nearby Emergency: ${data.type}`);
-      // Draw pin on my map
-      const sIcon = L.divIcon({ className: 'custom-marker', html: `<div class="marker-sos" style="width:24px;height:24px;animation:none;"><div class="marker-sos-inner" style="width:12px;height:12px;"></div></div>` });
-      L.marker([data.lat, data.lng], { icon: sIcon }).addTo(map);
+
+      const sIcon = L.divIcon({
+        className: 'custom-marker',
+        html: `<div class="marker-sos" style="width:24px;height:24px;animation:none;"><div class="marker-sos-inner" style="width:12px;height:12px;"></div></div>`
+      });
+
+      const marker = L.marker([data.lat, data.lng], { icon: sIcon }).addTo(map);
+      marker.bindPopup(`
+        <div style="padding:10px;">
+          <strong style="display:block;margin-bottom:5px;">${data.type.toUpperCase()} Emergency</strong>
+          <button class="btn-primary" style="width:100%;padding:8px;font-size:0.8rem;" onclick="acceptEmergency('${data.id}')">Accept Incident</button>
+        </div>
+      `).openPopup();
+
+      responderMarkers[data.id] = marker;
     }
+  });
+
+  window.acceptEmergency = function (sosId) {
+    socket.emit('accept_sos', { sosId });
+    showToast("You have accepted the emergency!");
+    openChat(sosId);
+
+    // Start Live Tracking
+    if (navigator.geolocation) {
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          socket.emit('responder_moved', {
+            sosId,
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude
+          });
+        },
+        (err) => console.warn("Live tracking error", err),
+        { enableHighAccuracy: true }
+      );
+    }
+
+    if (responderMarkers[sosId]) {
+      responderMarkers[sosId].closePopup();
+    }
+  };
+
+  socket.on('new_message', (msg) => {
+    addChatMessage(msg);
+    if (chatPanel.classList.contains('hidden')) {
+      showToast(`<i class="ph ph-chat"></i> New message available`);
+    }
+  });
+
+  socket.on('chat_closed', (data) => {
+    if (activeSosId === data.sosId) {
+      showToast("Incident resolved. Chat closed.");
+      chatPanel.classList.add('hidden');
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+      }
+    }
+  });
+
+  socket.on('sos_resolved', (data) => {
+    if (responderMarkers[data.sosId]) {
+      map.removeLayer(responderMarkers[data.sosId]);
+      delete responderMarkers[data.sosId];
+    }
+    showToast("Incident has been resolved by the broadcaster.");
+  });
+
+  socket.on('responder_moved', (data) => {
+    // If I am the broadcaster, update the responder's marker
+    if (isBroadcasting && responderMarkers[data.responderId]) {
+      responderMarkers[data.responderId].setLatLng([data.lat, data.lng]);
+    }
+    // Note: In Phase 3 simple version, broadcaster also uses responderMarkers to track people coming to them
   });
 
   // --------- AI Fetch Logic ---------
