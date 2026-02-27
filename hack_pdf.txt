@@ -1,0 +1,51 @@
+Hack de Science Ojass 2026
+Problem 4 — NearHelp
+Overview
+When someone has a sudden medical emergency, a car breakdown, a gas leak, or needs urgent help
+— they call one person. But the fastest help is almost always a neighbour they have never spoken
+to. Build a platform that activates your immediate community in a crisis.
+Required Features & Score Distribution
+# Feature Marks (out of 20)
+1 SOS Broadcasting— Trigger SOS with crisis type
+and auto-detected location. Broadcasts via WebSock-
+ets to users within a configurable radius (500 m, 1 km,
+2 km). Pulsing pin appears live on the map.5/20
+2 Responder Flow— Nearby users tap“I’m Respond-
+ing”; broadcaster sees live responder locations. Per-
+responder chat for coordination. Broadcaster marks
+SOS resolved — pin disappears in real time.4/20
+3 AI Crisis Assistant— AI surfaces first-response
+guidance based on crisis type. Generates a pre-filled
+emergency summary ready to read to services. Post-
+resolution debrief prompt.4/20
+4 Skill Registry & Community Layer— Users regis-
+ter skills (CPR, doctor, nurse, etc.); skilled responders
+highlighted during active SOS. Community resource
+map (AEDs, fire extinguishers). Nearby emergency
+services auto-surfaced on SOS trigger.3/20
+5 Trust & Verification— Responders build a rated
+response history. False alerts flagged and penalised;
+repeat offenders suspended. Anonymous mode for
+threat-based SOS.2/20
+6 Admin Dashboard— Live city-wide SOS view.
+Response-time analytics by locality. Misuse flagging
+and suspension management.2/20
+Optional Features
+•Offline SMS Fallback— SOS triggered via SMS when internet is unavailable; posts to
+platform on user’s behalf.
+•Guardian Mode— Guardians assigned to vulnerable users are notified before the wider
+community.
+•Post-Crisis Welfare Check— Automated check-in message sent to broadcaster 24 hours
+after resolution.
+Page 10
+Hack de Science Ojass 2026
+Technical Expectations
+•Backend: real-time server with WebSocket support (Socket.io,ws, etc.) and a persistent
+database.
+•Frontend: map integration (Leaflet, Mapbox, or Google Maps) with live marker updates.
+•AI Integration: any LLM API (OpenAI, Anthropic, Gemini, etc.) for the Crisis Assistant.
+•Geospatial queries must be efficient — use indexed radius queries or a spatial database where
+appropriate.
+•Authenticated endpoints must enforce user identity; anonymous SOS must not expose PII to
+responders.
+Page 11
