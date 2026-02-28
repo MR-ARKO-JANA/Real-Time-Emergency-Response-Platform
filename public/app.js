@@ -348,9 +348,13 @@ document.addEventListener('DOMContentLoaded', () => {
     aiSummary.innerHTML = `<div class="loading-shimmer ai-shimmer" style="height: 60px;"></div>`;
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch('/api/sos/ai-guidance', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ crisisType: type })
       });
 

@@ -150,7 +150,28 @@
 
     </div>
 
-    <script>
+    <script type="module">
+        // Firebase Setup
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+        import {
+            getAuth,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword
+        } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBwBOQ9KPhlZfLJp_WrIZL4p3z6ktK3X-E",
+            authDomain: "nit-hack-de.firebaseapp.com",
+            projectId: "nit-hack-de",
+            storageBucket: "nit-hack-de.firebasestorage.app",
+            messagingSenderId: "795931621619",
+            appId: "1:795931621619:web:4d68db464167b160995f86",
+            measurementId: "G-KLHP9MX4B5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
         const signinTab = document.getElementById("signinTab");
         const signupTab = document.getElementById("signupTab");
         const signinForm = document.getElementById("signinForm");
@@ -178,59 +199,74 @@
             });
         }
 
-        // Signup API
+        // Signup Logic
         signupForm.addEventListener("submit", async (e) => {
             e.preventDefault();
 
-            const userData = {
-                name: document.getElementById("signupName").value,
-                email: document.getElementById("signupEmail").value,
-                password: document.getElementById("signupPassword").value,
-                role: document.getElementById("signupRole").value,
-                location: document.getElementById("signupLocation").value
-            };
+            const name = document.getElementById("signupName").value;
+            const email = document.getElementById("signupEmail").value;
+            const password = document.getElementById("signupPassword").value;
+            const role = document.getElementById("signupRole").value;
+            const location = document.getElementById("signupLocation").value;
 
             try {
-                const res = await fetch("/api/auth/register", {
+                // 1. Create User in Firebase
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // 2. Sync to MongoDB
+                const res = await fetch("/api/auth/sync", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(userData)
+                    body: JSON.stringify({
+                        firebaseUid: user.uid,
+                        name,
+                        email,
+                        role,
+                        location
+                    })
                 });
 
                 const data = await res.json();
-                alert(data.msg);
-                if (res.ok) signinTab.click();
+
+                if (res.ok) {
+                    alert("Account created successfully!");
+                    signinTab.click();
+                } else {
+                    alert("Account created in Firebase, but sync failed: " + data.msg);
+                }
+
             } catch (err) {
-                alert("Server error connecting to backend");
+                alert("Creation Error: " + err.message);
+                console.error(err);
             }
         });
 
-        // Login API
+        // Login Logic
         signinForm.addEventListener("submit", async (e) => {
             e.preventDefault();
 
-            const loginData = {
-                email: document.getElementById("loginEmail").value,
-                password: document.getElementById("loginPassword").value
-            };
+            const email = document.getElementById("loginEmail").value;
+            const password = document.getElementById("loginPassword").value;
 
             try {
-                const res = await fetch("/api/auth/login", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(loginData)
-                });
+                // Login with Firebase
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
 
-                const data = await res.json();
+                // Get the ID Token
+                const token = await user.getIdToken();
 
-                if (data.token) {
-                    localStorage.setItem("token", data.token);
-                    window.location.href = "index.html";
-                } else {
-                    alert(data.msg);
-                }
+                // Save token & redirect
+                localStorage.setItem("token", token);
+                // Also save some basic user info if needed by frontend
+                localStorage.setItem("user", JSON.stringify({ email: user.email, uid: user.uid }));
+
+                window.location.href = "index.html";
+
             } catch (err) {
-                alert("Server error connecting to backend");
+                alert("Login Error: " + err.message);
+                console.error(err);
             }
         });
     </script>

@@ -1,22 +1,28 @@
-// auth middleware to verify JWT
-const jwt = require('jsonwebtoken');
+const admin = require('../config/firebase-admin');
 
-module.exports = function (req, res, next) {
-    // Get token from header
-    const token = req.header('x-auth-token');
+module.exports = async function (req, res, next) {
+    // Get token from header (format: Bearer <token>)
+    const authHeader = req.header('Authorization');
 
     // Check if not token
-    if (!token) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ message: 'No token, authorization denied' });
     }
 
-    try {
-        const secret = process.env.JWT_SECRET || 'secret123';
-        const decoded = jwt.verify(token, secret);
+    const token = authHeader.split(' ')[1];
 
-        req.user = decoded.user;
+    try {
+        const decodedToken = await admin.auth().verifyIdToken(token);
+
+        // Attach firebase user info to req object
+        req.user = {
+            id: decodedToken.uid, // We will use this to look up our DB matching user
+            email: decodedToken.email
+        };
+
         next();
     } catch (err) {
+        console.error('Firebase Auth Error:', err);
         res.status(401).json({ message: 'Token is not valid' });
     }
 };

@@ -1,40 +1,34 @@
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const User = require('../models/user.model');
 
-// Register a new user
-exports.register = async (req, res) => {
+// Sync a user from Firebase to MongoDB
+exports.syncUser = async (req, res) => {
     try {
-        const { name, email, password, role, location } = req.body;
-        const mongoose = require('mongoose');
+        const { firebaseUid, name, email, role, location } = req.body;
 
-        // Offline Hackathon Prototype Fallback
-        if (mongoose.connection.readyState !== 1) {
-            console.warn(`[Offline Mode] Faking registration for ${email}`);
-            return res.status(201).json({ msg: 'User registered successfully (Offline Mode)' });
-        }
+        // Check if user already exists in DB
+        let user = await User.findOne({ firebaseUid });
 
-        // Check if user exists
-        let user = await User.findOne({ email });
         if (user) {
-            return res.status(400).json({ msg: 'User already exists' });
+            // User already synced, but we might want to update location or role
+            // if login updates are needed, we can do it here. 
+            // For now, let's just return success
+            return res.status(200).json({ msg: 'User already synced', user });
         }
-
-        // Hash password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
 
         // Parse location string "lat,lng" to [lng, lat]
         let coordinates = [0, 0];
         if (location && location.includes(',')) {
             const parts = location.split(',');
-            coordinates = [parseFloat(parts[1]), parseFloat(parts[0])]; // [lng, lat]
+            if (parts.length === 2) {
+                coordinates = [parseFloat(parts[1]), parseFloat(parts[0])]; // [lng, lat]
+            }
         }
 
+        // Create new user profile in MongoDB
         user = new User({
             name,
             email,
-            password: hashedPassword,
+            firebaseUid,
             role: role || 'citizen',
             location: {
                 type: 'Point',
@@ -43,58 +37,10 @@ exports.register = async (req, res) => {
         });
 
         await user.save();
-        console.log('User registered successfully:', email);
-        res.status(201).json({ msg: 'User registered successfully' });
+        console.log('User synced with MongoDB:', email);
+        res.status(201).json({ msg: 'User synced successfully', user });
     } catch (err) {
-        console.error('Registration Error:', err);
+        console.error('Sync Error:', err);
         res.status(500).json({ msg: err.message || 'Server Error' });
-    }
-};
-
-// Login user
-exports.login = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        const mongoose = require('mongoose');
-        const jwt = require('jsonwebtoken');
-
-        // Offline Hackathon Prototype Fallback
-        if (mongoose.connection.readyState !== 1) {
-            console.warn(`[Offline Mode] Faking login for ${email}`);
-            const secret = process.env.JWT_SECRET || 'secret123';
-            const fakeToken = jwt.sign({ user: { id: `offline-${Date.now()}` } }, secret, { expiresIn: '5h' });
-            return res.json({
-                token: fakeToken,
-                user: { id: `offline-${Date.now()}`, name: email.split('@')[0], role: 'rescuer' }
-            });
-        }
-
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(400).json({ msg: 'Invalid Credentials' });
-        }
-
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ msg: 'Invalid Credentials' });
-        }
-
-        // JWT Payload
-        const payload = {
-            user: {
-                id: user.id
-            }
-        };
-
-        const secret = process.env.JWT_SECRET || 'secret123';
-
-        jwt.sign(payload, secret, { expiresIn: '5h' }, (err, token) => {
-            if (err) throw err;
-            res.json({ token, user: { id: user.id, name: user.name, role: user.role } });
-        });
-
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
     }
 };
