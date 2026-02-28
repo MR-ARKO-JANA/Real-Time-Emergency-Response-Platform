@@ -26,11 +26,11 @@ module.exports = function (io) {
         // 1. Initial Connection & Location Update
         socket.on('update_location', async (data) => {
             connectedUsers.set(socket.id, {
-                id: socket.id, // For a real app, bind the user's JWT _id here
+                id: data.uid || socket.id,
                 lat: data.lat,
                 lng: data.lng,
-                name: `User-${socket.id.substring(0, 4)}`,
-                skill: 'Neighbour'
+                name: data.name || `User-${socket.id.substring(0, 4)}`,
+                skill: data.role || 'Neighbour'
             });
             // Send back current active SOS
             socket.emit('active_incidents', Array.from(activeSOS.values()));

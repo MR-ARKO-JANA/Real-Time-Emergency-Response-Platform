@@ -231,6 +231,7 @@
 
                 if (res.ok) {
                     alert("Account created successfully!");
+                    localStorage.setItem("user", JSON.stringify({ email: user.email, uid: user.uid, name: name }));
                     signinTab.click();
                 } else {
                     alert("Account created in Firebase, but sync failed: " + data.msg);

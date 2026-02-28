@@ -73,7 +73,13 @@ document.addEventListener('DOMContentLoaded', () => {
           userLng = position.coords.longitude;
           map.setView([userLat, userLng], 15);
           userMarker.setLatLng([userLat, userLng]);
-          socket.emit('update_location', { lat: userLat, lng: userLng });
+          const userMeta = JSON.parse(localStorage.getItem('user') || '{}');
+          socket.emit('update_location', {
+            lat: userLat,
+            lng: userLng,
+            uid: userMeta.uid,
+            name: userMeta.name || userMeta.email?.split('@')[0]
+          });
         },
         (error) => {
           console.warn("Geolocation access denied or failed.");
@@ -175,10 +181,22 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentSosId = null;
 
   setInterval(() => {
-    socket.emit('update_location', { lat: userLat, lng: userLng });
+    const userMeta = JSON.parse(localStorage.getItem('user') || '{}');
+    socket.emit('update_location', {
+      lat: userLat,
+      lng: userLng,
+      uid: userMeta.uid,
+      name: userMeta.name || userMeta.email?.split('@')[0]
+    });
   }, 10000);
 
-  socket.emit('update_location', { lat: userLat, lng: userLng });
+  const initUserMeta = JSON.parse(localStorage.getItem('user') || '{}');
+  socket.emit('update_location', {
+    lat: userLat,
+    lng: userLng,
+    uid: initUserMeta.uid,
+    name: initUserMeta.name || initUserMeta.email?.split('@')[0]
+  });
 
   function startSosBroadcast(type, isAnon) {
     isBroadcasting = true;
