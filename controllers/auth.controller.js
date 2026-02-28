@@ -4,6 +4,13 @@ const User = require('../models/user.model');
 exports.syncUser = async (req, res) => {
     try {
         const { firebaseUid, name, email, role, location } = req.body;
+        const mongoose = require('mongoose');
+
+        // Offline Hackathon Prototype Fallback
+        if (mongoose.connection.readyState !== 1) {
+            console.warn(`[Offline Mode] Skipping MongoDB sync for ${email}`);
+            return res.status(201).json({ msg: 'Account Created. (Offline Mode, DB not connected)' });
+        }
 
         // Check if user already exists in DB
         let user = await User.findOne({ firebaseUid });
