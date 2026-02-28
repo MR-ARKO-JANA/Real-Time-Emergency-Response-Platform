@@ -25,12 +25,28 @@ module.exports = function (io) {
 
         // 1. Initial Connection & Location Update
         socket.on('update_location', async (data) => {
+            let userName = data.name;
+            let userSkill = data.role;
+
+            try {
+                // If we have a firebase UID but missing the display name/role, ask the DB
+                if (data.uid && mongoose.connection.readyState === 1 && (!userName || !userSkill)) {
+                    const dbUser = await User.findOne({ firebaseUid: data.uid });
+                    if (dbUser) {
+                        userName = dbUser.name;
+                        userSkill = dbUser.role;
+                    }
+                }
+            } catch (err) {
+                console.error("DB lookup failed in socket:", err);
+            }
+
             connectedUsers.set(socket.id, {
                 id: data.uid || socket.id,
                 lat: data.lat,
                 lng: data.lng,
-                name: data.name || `User-${socket.id.substring(0, 4)}`,
-                skill: data.role || 'Neighbour'
+                name: userName || `User-${socket.id.substring(0, 4)}`,
+                skill: userSkill || 'Neighbour'
             });
             // Send back current active SOS
             socket.emit('active_incidents', Array.from(activeSOS.values()));
