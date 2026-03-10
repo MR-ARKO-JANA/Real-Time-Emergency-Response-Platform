@@ -131,13 +131,16 @@
             <input type="text" id="signupName" placeholder="Full Name" required>
             <input type="email" id="signupEmail" placeholder="Email Address" required>
             <input type="password" id="signupPassword" placeholder="Password" required>
+            <input type="tel" id="signupPhone" placeholder="Phone Number (10-15 digits)" pattern="[0-9]{10,15}" required
+                title="Please enter a 10 to 15-digit phone number">
 
             <select id="signupRole" required>
-                <option value="">Select Role</option>
-                <option value="doctor">Doctor</option>
-                <option value="police">Police</option>
-                <option value="firefighter">Firefighter</option>
-                <option value="volunteer">Volunteer</option>
+                <option value="">Select Domain/Role</option>
+                <option value="medical">Doctor / Medical Professional</option>
+                <option value="police">Police / Security</option>
+                <option value="fire">Firefighter / Rescue</option>
+                <option value="mechanic">Car Mechanic / Technician</option>
+                <option value="volunteer">Volunteer / Neighbour</option>
                 <option value="other">Other</option>
             </select>
 
@@ -206,6 +209,7 @@
             const name = document.getElementById("signupName").value;
             const email = document.getElementById("signupEmail").value;
             const password = document.getElementById("signupPassword").value;
+            const phone = document.getElementById("signupPhone").value;
             const role = document.getElementById("signupRole").value;
             const location = document.getElementById("signupLocation").value;
 
@@ -222,6 +226,7 @@
                         firebaseUid: user.uid,
                         name,
                         email,
+                        phone,
                         role,
                         location
                     })
@@ -231,10 +236,11 @@
 
                 if (res.ok) {
                     alert("Account created successfully!");
-                    localStorage.setItem("user", JSON.stringify({ email: user.email, uid: user.uid, name: name }));
+                    localStorage.setItem("user", JSON.stringify({ email: user.email, uid: user.uid, name: name, phone: phone, role: role }));
                     signinTab.click();
                 } else {
-                    alert("Account created in Firebase, but sync failed: " + data.msg);
+                    const errorMsg = data.msg || data.error || (data.details && data.details[0].message) || "Unknown error";
+                    alert("Account created in Firebase, but sync failed: " + errorMsg);
                 }
 
             } catch (err) {
@@ -258,10 +264,24 @@
                 // Get the ID Token
                 const token = await user.getIdToken();
 
+                // Fetch Profile from MongoDB to get Name/Phone/Role
+                const profileRes = await fetch(`/api/auth/profile/${user.uid}`);
+                const profileData = await profileRes.json();
+
                 // Save token & redirect
                 localStorage.setItem("token", token);
-                // Also save some basic user info if needed by frontend
-                localStorage.setItem("user", JSON.stringify({ email: user.email, uid: user.uid }));
+
+                if (profileRes.ok) {
+                    localStorage.setItem("user", JSON.stringify({
+                        email: profileData.email,
+                        uid: profileData.firebaseUid,
+                        name: profileData.name,
+                        phone: profileData.phone,
+                        role: profileData.role
+                    }));
+                } else {
+                    localStorage.setItem("user", JSON.stringify({ email: user.email, uid: user.uid }));
+                }
 
                 window.location.href = "index.html";
 

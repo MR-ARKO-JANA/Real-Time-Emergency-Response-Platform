@@ -5,3 +5,36 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Testing
+coverage/
+*.test.js.snap
+.nyc_output/
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Build
+dist/
+build/
+
+# Temporary files
+tmp/
+temp/
+
+# Firebase
+config/firebase-service-account.json
+
+# Docker
+.dockerignore

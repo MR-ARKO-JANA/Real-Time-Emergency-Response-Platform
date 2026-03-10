@@ -47,8 +47,17 @@
           <span class="slider round"></span>
         </label>
       </div>
-      <button class="profile-btn">
-        <img src="https://i.pravatar.cc/150?img=11" alt="Profile" />
+      <div class="user-badge" style="margin-right:10px;">
+        <span id="user-role-display">Citizen</span>
+      </div>
+      <button class="profile-btn" id="profile-btn">
+        <img
+          src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect fill='%23667eea' width='40' height='40'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='18' font-family='Arial'%3EU%3C/text%3E%3C/svg%3E"
+          alt="Profile" id="profile-img" />
+      </button>
+      <button id="btn-logout-header" class="icon-btn" title="Logout"
+        style="margin-left:10px; background:none; border:none; color:white; cursor:pointer; font-size:1.2rem;">
+        <i class="ph ph-sign-out"></i>
       </button>
     </div>
   </header>
@@ -146,9 +155,13 @@
         </div>
       </div>
     </div>
+    <div class="ai-input-area">
+      <input type="text" id="ai-input" placeholder="Ask AI for guidance...">
+      <button id="btn-send-ai"><i class="ph-fill ph-paper-plane-right"></i></button>
+    </div>
   </div>
 
-  <button class="fab-ai hidden" id="fab-ai">
+  <button class="fab-ai" id="fab-ai">
     <i class="ph-fill ph-magic-wand"></i>
   </button>
 
@@ -193,6 +206,89 @@
       <div class="modal-actions">
         <button class="btn-secondary" id="btn-skip-rating">Skip</button>
         <button class="btn-primary" id="btn-submit-rating">Submit Ratings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Profile Modal -->
+  <div class="modal overlay hidden" id="profile-modal">
+    <div class="modal-content glass-panel profile-card">
+      <div class="profile-header">
+        <div id="profile-avatar-large" class="profile-avatar-large">U</div>
+        <h2 id="profile-name-header">User Name</h2>
+        <span class="badge" id="profile-role-badge">Citizen</span>
+      </div>
+
+      <div class="profile-details" id="profile-details-view">
+        <div class="detail-item">
+          <i class="ph ph-user"></i>
+          <div>
+            <label>Full Name</label>
+            <p id="profile-name-val">User Name</p>
+          </div>
+        </div>
+        <div class="detail-item">
+          <i class="ph ph-envelope"></i>
+          <div>
+            <label>Email Address</label>
+            <p id="profile-email-val">user@example.com</p>
+          </div>
+        </div>
+        <div class="detail-item">
+          <i class="ph ph-phone"></i>
+          <div>
+            <label>Phone Number</label>
+            <p id="profile-phone-val">N/A</p>
+          </div>
+        </div>
+        <div class="detail-item">
+          <i class="ph ph-briefcase"></i>
+          <div>
+            <label>Domain / Section</label>
+            <p id="profile-role-val">Citizen</p>
+          </div>
+        </div>
+        <div class="detail-item">
+          <i class="ph ph-shield"></i>
+          <div>
+            <label>Verified ID</label>
+            <p id="profile-uid-val">UID-123456</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit Mode (Hidden initially) -->
+      <div class="profile-details hidden" id="profile-details-edit">
+        <div class="detail-item">
+          <i class="ph ph-user"></i>
+          <input type="text" id="edit-profile-name" placeholder="Full Name">
+        </div>
+        <div class="detail-item">
+          <i class="ph ph-envelope"></i>
+          <input type="email" id="edit-profile-email" placeholder="Email Address">
+        </div>
+        <div class="detail-item">
+          <i class="ph ph-phone"></i>
+          <input type="tel" id="edit-profile-phone" placeholder="Phone Number" pattern="[0-9]{10,15}">
+        </div>
+        <div class="detail-item">
+          <i class="ph ph-briefcase"></i>
+          <select id="edit-profile-role">
+            <option value="citizen">Citizen</option>
+            <option value="responder">Volunteer Responder</option>
+            <option value="medical">Medical Professional</option>
+            <option value="police">Police Officer</option>
+            <option value="fire">Firefighter</option>
+            <option value="mechanic">Mechanic</option>
+            <option value="other">Other Expert</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" id="btn-edit-profile" style="flex:1;">Edit Profile</button>
+        <button class="btn-primary hidden" id="btn-save-profile" style="flex:1;">Save Changes</button>
+        <button class="btn-primary" id="btn-close-profile" style="flex:1;">Close</button>
       </div>
     </div>
   </div>

@@ -1,13 +1,45 @@
 const express = require('express');
 const router = express.Router();
 const sosController = require('../controllers/sos.controller');
+const { validateSOSGuidance } = require('../middleware/validation.middleware');
 
-// @route   POST api/sos/ai-guidance
-// @desc    Get AI generated crisis guidance
-router.post('/ai-guidance', sosController.getGuidance);
+/**
+ * @openapi
+ * /api/sos/ai-guidance:
+ *   post:
+ *     summary: Get AI generated crisis guidance
+ *     tags: [SOS]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - crisisType
+ *             properties:
+ *               crisisType:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Guidance returned
+ *       400:
+ *         description: Invalid input
+ */
+router.post('/ai-guidance', validateSOSGuidance, sosController.getGuidance);
 
-// @route   GET api/sos/alerts
-// @desc    Get all active/resolved SOS alerts (Admin View)
+/**
+ * @openapi
+ * /api/sos/alerts:
+ *   get:
+ *     summary: Get all active/resolved SOS alerts (Admin View)
+ *     tags: [SOS]
+ *     responses:
+ *       200:
+ *         description: List of alerts
+ */
 router.get('/alerts', sosController.getAllSos);
 
 module.exports = router;

@@ -21,7 +21,7 @@ function getDistance(lat1, lon1, lat2, lon2) {
 
 module.exports = function (io) {
     io.on('connection', (socket) => {
-        console.log('Client connected:', socket.id);
+        // Handle new connection
 
         // 1. Initial Connection & Location Update
         socket.on('update_location', async (data) => {
@@ -35,10 +35,11 @@ module.exports = function (io) {
                     if (dbUser) {
                         userName = dbUser.name;
                         userSkill = dbUser.role;
+                        socket.userPhone = dbUser.phone; // Store phone on socket
                     }
                 }
             } catch (err) {
-                console.error("DB lookup failed in socket:", err);
+                // Silent DB lookup failure
             }
 
             connectedUsers.set(socket.id, {
@@ -46,7 +47,8 @@ module.exports = function (io) {
                 lat: data.lat,
                 lng: data.lng,
                 name: userName || `User-${socket.id.substring(0, 4)}`,
-                skill: userSkill || 'Neighbour'
+                skill: userSkill || 'Neighbour',
+                phone: socket.userPhone || data.phone || 'N/A'
             });
             // Send back current active SOS
             socket.emit('active_incidents', Array.from(activeSOS.values()));
@@ -54,8 +56,6 @@ module.exports = function (io) {
 
         // 2. Broadcast SOS
         socket.on('trigger_sos', async (data) => {
-            console.log(`SOS Triggered: ${data.type} at [${data.lat}, ${data.lng}]`);
-
             const sosEvent = {
                 id: `SOS-${Date.now()}`,
                 broadcasterId: socket.id,
@@ -70,13 +70,12 @@ module.exports = function (io) {
             try {
                 // 1. Save new SOS incident to MongoDB
                 const userSession = connectedUsers.get(socket.id);
-                // For hackathon: generate a valid ObjectId if user id isn't one
                 const bId = mongoose.Types.ObjectId.isValid(userSession?.id) ? userSession.id : new mongoose.Types.ObjectId();
 
                 if (mongoose.connection.readyState === 1) {
                     const newDbSos = new SOS({
                         broadcaster: bId,
-                        crisisType: data.type,
+                        crisisTypes: data.types || [data.type],
                         location: { type: 'Point', coordinates: [data.lng, data.lat] },
                         isAnonymous: data.isAnon
                     });
@@ -86,30 +85,68 @@ module.exports = function (io) {
                     throw new Error("MongoDB not connected natively");
                 }
             } catch (dbError) {
-                console.warn("MongoDB Save Failed (ignoring for in-memory broadcast):", dbError.message);
                 sosEvent.dbId = `MOCK-DB-${Date.now()}`;
             }
 
             try {
                 activeSOS.set(sosEvent.id, sosEvent);
-                socket.join(`incident_${sosEvent.id}`); // Victim joins room
+                socket.join(`incident_${sosEvent.id}`);
 
-                // 2. Broadcast to connected users within 2km using Haversine formula
+                const crisisTypes = (data.types || [data.type]).filter(Boolean).map(t => t.toLowerCase());
+                if (crisisTypes.length === 0) crisisTypes.push('other');
+
+                let targetedResponders = [];
+
                 for (const [sId, uData] of connectedUsers.entries()) {
-                    // sId !== socket.id avoids sending it back to the broadcaster
                     if (sId !== socket.id) {
                         const dist = getDistance(data.lat, data.lng, uData.lat, uData.lng);
+                        const userSkill = (uData.skill || '').toLowerCase();
 
-                        // Check if within 2000 meters (2km)
-                        if (dist <= 2000) {
-                            io.to(sId).emit('new_sos', sosEvent);
+                        const hasPrimarySkill = crisisTypes.some(type => {
+                            if (type === 'medical' || type === 'health') return userSkill.includes('doctor') || userSkill.includes('medical') || userSkill.includes('nurse');
+                            if (type === 'fire') return userSkill.includes('fire');
+                            if (type === 'security' || type === 'police') return userSkill.includes('security') || userSkill.includes('police');
+                            if (type === 'mechanic') return userSkill.includes('mechanic');
+                            return userSkill === type.toLowerCase();
+                        });
+
+                        const isVolunteer = userSkill === 'volunteer' || userSkill === 'neighbour' || userSkill === 'citizen' || userSkill === '';
+
+                        if (dist <= 5000 && hasPrimarySkill) {
+                            targetedResponders.push({ sId, distance: dist, priority: 1, skillLabel: "Domain Specialist" });
+                        } else if (dist <= 2000 && isVolunteer) {
+                            targetedResponders.push({ sId, distance: dist, priority: 2, skillLabel: "Nearby Helper" });
                         }
                     }
                 }
 
+                targetedResponders.sort((a, b) => (a.priority - b.priority) || (a.distance - b.distance));
+
+                targetedResponders.forEach(r => {
+                    io.to(r.sId).emit('new_sos', {
+                        ...sosEvent,
+                        priority: r.priority,
+                        matchedDomain: r.skillLabel
+                    });
+                });
+
+                crisisTypes.forEach(type => {
+                    socket.emit('ai_automated_call', {
+                        type: type,
+                        number: "7478435239",
+                        location: [data.lat, data.lng],
+                        message: `AI Action: Contacting Emergency ${type.toUpperCase()} Services at 7478435239...`
+                    });
+
+                    io.emit('system_message', {
+                        text: `NearHelp AI is coordinating with ${type.toUpperCase()} services (7478435239).`,
+                        type: 'ai'
+                    });
+                });
+
                 socket.emit('sos_confirmed', sosEvent);
             } catch (e) {
-                console.error("Failed to persist and broadcast SOS", e);
+                // Critical broadcast error
             }
         });
 
@@ -120,22 +157,38 @@ module.exports = function (io) {
                 io.to(`incident_${data.sosId}`).emit('chat_closed', { sosId: data.sosId });
                 activeSOS.delete(data.sosId);
                 io.emit('admin_update', Array.from(activeSOS.values()));
-                console.log(`SOS Resolved: ${data.sosId}`);
             }
         });
 
-        // 4. Accept SOS (Responder Flow)
+        // 4. Accept SOS
         socket.on('accept_sos', (data) => {
             if (activeSOS.has(data.sosId)) {
                 const event = activeSOS.get(data.sosId);
                 const user = connectedUsers.get(socket.id);
 
                 if (user) {
-                    socket.join(`incident_${data.sosId}`); // Responder joins room
-                    const responderData = { id: user.id, name: user.name, skill: user.skill, lat: user.lat, lng: user.lng, img: 11, time: "Active" };
+                    socket.join(`incident_${data.sosId}`);
+                    const responderData = {
+                        id: user.id,
+                        name: user.name,
+                        skill: user.skill,
+                        phone: user.phone,
+                        lat: user.lat,
+                        lng: user.lng,
+                        time: "Active"
+                    };
                     event.responders.push(responderData);
 
                     io.to(event.broadcasterId).emit('responder_assigned', { sosId: data.sosId, responder: responderData });
+
+                    if (event.crisisTypes && event.crisisTypes.length > 1) {
+                        const otherType = event.crisisTypes.find(t => t.toLowerCase() !== (user.skill || '').toLowerCase()) || event.crisisTypes[1];
+                        io.to(event.broadcasterId).emit('system_message', {
+                            text: `AI is handling remaining issues. Contacting ${otherType.toUpperCase()} services...`,
+                            type: 'ai'
+                        });
+                    }
+
                     io.to(`incident_${data.sosId}`).emit('new_message', {
                         sender: 'System',
                         text: `${user.name} has joined the rescue operation!`,
@@ -171,7 +224,6 @@ module.exports = function (io) {
 
         // Handle disconnects
         socket.on('disconnect', () => {
-            console.log('Client disconnected:', socket.id);
             connectedUsers.delete(socket.id);
             for (const [id, ev] of activeSOS.entries()) {
                 if (ev.broadcasterId === socket.id) {

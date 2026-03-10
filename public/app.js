@@ -29,6 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const chatInput = document.getElementById('chat-input');
   const btnSendChat = document.getElementById('btn-send-chat');
   const chatRoomIdLabel = document.getElementById('chat-room-id');
+  const aiInput = document.getElementById('ai-input');
+  const btnSendAi = document.getElementById('btn-send-ai');
 
   const resolveModal = document.getElementById('resolve-modal');
   const ratingList = document.getElementById('rating-list');
@@ -37,6 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const toastContainer = document.getElementById('toast-container');
   const btnDashboard = document.getElementById('btn-dashboard');
   const responderToggle = document.getElementById('responder-toggle');
+  const profileModal = document.getElementById('profile-modal');
+  const btnCloseProfile = document.getElementById('btn-close-profile');
+  const profileBtn = document.getElementById('profile-btn');
 
   // --------- State ---------
   let map, userMarker, sosMarker;
@@ -49,6 +54,78 @@ document.addEventListener('DOMContentLoaded', () => {
   let userLng = -0.09;
   let activeSosId = null;
   let watchId = null;
+  let selectedCrisisTypes = ['medical']; // Default selection
+
+  // --------- Initialize User Profile ---------
+  async function initUserProfile() {
+    let userMeta = JSON.parse(localStorage.getItem('user') || '{}');
+
+    // If name is missing, try to fetch from server
+    if (!userMeta.name && userMeta.uid) {
+      try {
+        const res = await fetch(`/api/auth/profile/${userMeta.uid}`);
+        if (res.ok) {
+          const data = await res.json();
+          userMeta = {
+            email: data.email || userMeta.email,
+            uid: data.firebaseUid || userMeta.uid,
+            name: data.name || userMeta.name || 'Set Your Name',
+            phone: data.phone || userMeta.phone || 'N/A',
+            role: data.role || userMeta.role || 'citizen'
+          };
+          localStorage.setItem('user', JSON.stringify(userMeta));
+
+          // Update profile modal fields if they are currently visible
+          if (!profileModal.classList.contains('hidden')) {
+            updateProfileModalUI(userMeta);
+          }
+        } else if (res.status === 404 && userMeta.uid) {
+          // AUTO-SYNC: Server forgotten us (restart), so tell it who we are
+          // Update UI immediately from cache while sync happens in background
+          updateProfileModalUI(userMeta);
+
+          fetch('/api/auth/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              firebaseUid: userMeta.uid,
+              name: userMeta.name || userMeta.email?.split('@')[0],
+              email: userMeta.email,
+              phone: userMeta.phone,
+              role: userMeta.role
+            })
+          }).catch(e => { /* Silently fail auto-sync */ });
+        }
+      } catch (err) {
+        // Silently fail profile fetch
+      }
+    }
+
+    const userName = userMeta.name || userMeta.email?.split('@')[0] || 'User';
+    const userInitial = userName.charAt(0).toUpperCase();
+
+    // Update user role display if it exists
+    const userRoleDisplay = document.getElementById('user-role-display');
+    if (userRoleDisplay) {
+      userRoleDisplay.innerText = userMeta.role || 'Citizen';
+    }
+
+    // Generate profile picture with user initial
+    const profileImg = document.getElementById('profile-img');
+    if (profileImg) {
+      const colors = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a'];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      profileImg.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect fill='${encodeURIComponent(color)}' width='40' height='40'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='18' font-family='Arial' font-weight='bold'%3E${userInitial}%3C/text%3E%3C/svg%3E`;
+    }
+  }
+
+  // Helper function to generate avatar SVG
+  function generateAvatar(name, size = 40) {
+    const initial = (name || 'U').charAt(0).toUpperCase();
+    const colors = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a', '#ff6b6b', '#4ecdc4'];
+    const color = colors[name.charCodeAt(0) % colors.length];
+    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}'%3E%3Crect fill='${encodeURIComponent(color)}' width='${size}' height='${size}'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='${size / 2}' font-family='Arial' font-weight='bold'%3E${initial}%3C/text%3E%3C/svg%3E`;
+  }
 
   // --------- Map Initialization ---------
   function initMap() {
@@ -78,11 +155,13 @@ document.addEventListener('DOMContentLoaded', () => {
             lat: userLat,
             lng: userLng,
             uid: userMeta.uid,
-            name: userMeta.name || userMeta.email?.split('@')[0]
+            name: userMeta.name || userMeta.email?.split('@')[0],
+            phone: userMeta.phone,
+            skill: userMeta.role || 'citizen'
           });
         },
         (error) => {
-          console.warn("Geolocation access denied or failed.");
+          // Geolocation failed
         }
       );
     }
@@ -97,17 +176,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
   crisisCards.forEach(card => {
     card.addEventListener('click', () => {
-      crisisCards.forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      selectedCrisis = card.getAttribute('data-type');
+      card.classList.toggle('selected');
+      // Find ALL selected types
+      const selectedCards = document.querySelectorAll('.crisis-card.selected');
+      const types = Array.from(selectedCards).map(c => c.getAttribute('data-type'));
+
+      if (types.length === 0) {
+        showToast('<i class="ph ph-warning"></i> Please select at least one crisis type.');
+        // Re-select the card that was just unselected to prevent empty selection
+        card.classList.add('selected');
+        selectedCrisisTypes = [card.getAttribute('data-type')]; // Ensure at least one is selected
+        return;
+      }
+      selectedCrisisTypes = types;
     });
   });
 
-  crisisCards[0].classList.add('selected');
+  crisisCards[0].classList.add('selected'); // Ensure 'medical' is selected by default
 
   btnTriggerSos.addEventListener('click', () => {
+    if (selectedCrisisTypes.length === 0) {
+      showToast('<i class="ph ph-warning"></i> Please select at least one crisis type before triggering SOS.');
+      return;
+    }
     const isAnon = anonToggle.checked;
-    startSosBroadcast(selectedCrisis, isAnon);
+    const sosData = {
+      type: selectedCrisisTypes[0], // Primary type
+      types: selectedCrisisTypes,    // All selected types
+      lat: userLat,
+      lng: userLng,
+      isAnon: isAnon
+    };
+    startSosBroadcast(sosData);
   });
 
   btnResolveSos.addEventListener('click', () => {
@@ -120,21 +220,141 @@ document.addEventListener('DOMContentLoaded', () => {
 
   closeChat.addEventListener('click', () => chatPanel.classList.add('hidden'));
 
+  btnSendAi.addEventListener('click', sendAiMessage);
+  aiInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendAiMessage();
+  });
+
+
   btnDashboard.addEventListener('click', () => window.location.href = 'admin.html');
 
-  const btnLogout = document.getElementById('btn-logout');
-  if (btnLogout) {
-    btnLogout.addEventListener('click', () => {
+  const btnLogoutHeader = document.getElementById('btn-logout-header');
+  if (btnLogoutHeader) {
+    btnLogoutHeader.addEventListener('click', () => {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = 'authentication.html';
     });
   }
 
+  // Display user role
+  const userRoleDisplay = document.getElementById('user-role-display');
+  if (userRoleDisplay) {
+    const userMeta = JSON.parse(localStorage.getItem('user') || '{}');
+    userRoleDisplay.innerText = userMeta.role || 'Citizen';
+  }
+
   btnSkipRating.addEventListener('click', hideResolveModal);
   btnSubmitRating.addEventListener('click', () => {
     showToast('<i class="ph-fill ph-check-circle"></i> Ratings submitted successfully');
     hideResolveModal();
+  });
+
+  // --------- Profile Modal Logic ---------
+  const profileDetailsView = document.getElementById('profile-details-view');
+  const profileDetailsEdit = document.getElementById('profile-details-edit');
+  const btnEditProfile = document.getElementById('btn-edit-profile');
+  const btnSaveProfile = document.getElementById('btn-save-profile');
+
+  function updateProfileModalUI(userMeta) {
+    document.getElementById('profile-name-val').innerText = userMeta.name || 'User Name';
+    document.getElementById('profile-name-header').innerText = userMeta.name || 'User Name';
+    document.getElementById('profile-email-val').innerText = userMeta.email || 'user@example.com';
+    document.getElementById('profile-phone-val').innerText = userMeta.phone || 'N/A';
+    document.getElementById('profile-role-val').innerText = userMeta.role || 'Citizen';
+    document.getElementById('profile-uid-val').innerText = userMeta.uid || userMeta.firebaseUid || 'N/A';
+
+    const roleBadge = document.getElementById('profile-role-badge');
+    if (roleBadge) roleBadge.innerText = userMeta.role || 'Citizen';
+
+    const avatarLarge = document.getElementById('profile-avatar-large');
+    if (avatarLarge) {
+      const name = userMeta.name || 'User';
+      const initial = name.charAt(0).toUpperCase();
+      const colors = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a'];
+      avatarLarge.style.background = colors[initial.charCodeAt(0) % colors.length];
+      avatarLarge.innerText = initial;
+    }
+  }
+
+  function toggleProfileEditMode(isEdit) {
+    if (isEdit) {
+      const userMeta = JSON.parse(localStorage.getItem('user') || '{}');
+      document.getElementById('edit-profile-name').value = userMeta.name || '';
+      document.getElementById('edit-profile-email').value = userMeta.email || '';
+      document.getElementById('edit-profile-phone').value = userMeta.phone || '';
+      document.getElementById('edit-profile-role').value = userMeta.role || 'citizen';
+
+      profileDetailsView.classList.add('hidden');
+      profileDetailsEdit.classList.remove('hidden');
+      btnEditProfile.classList.add('hidden');
+      btnSaveProfile.classList.remove('hidden');
+    } else {
+      profileDetailsView.classList.remove('hidden');
+      profileDetailsEdit.classList.add('hidden');
+      btnEditProfile.classList.remove('hidden');
+      btnSaveProfile.classList.add('hidden');
+    }
+  }
+
+  profileBtn.addEventListener('click', () => {
+    const userMeta = JSON.parse(localStorage.getItem('user') || '{}');
+    updateProfileModalUI(userMeta);
+    toggleProfileEditMode(false);
+    profileModal.classList.remove('hidden');
+  });
+
+  btnEditProfile.addEventListener('click', () => toggleProfileEditMode(true));
+
+  btnSaveProfile.addEventListener('click', async () => {
+    const userMeta = JSON.parse(localStorage.getItem('user') || '{}');
+    const updatedData = {
+      name: document.getElementById('edit-profile-name').value,
+      email: document.getElementById('edit-profile-email').value,
+      phone: document.getElementById('edit-profile-phone').value,
+      role: document.getElementById('edit-profile-role').value
+    };
+
+    try {
+      const res = await fetch(`/api/auth/profile/${userMeta.uid}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedData)
+      });
+
+      if (res.ok) {
+        const savedUser = await res.json();
+        const newUserMeta = {
+          ...userMeta,
+          name: savedUser.name,
+          email: savedUser.email,
+          phone: savedUser.phone,
+          role: savedUser.role
+        };
+        localStorage.setItem('user', JSON.stringify(newUserMeta));
+        updateProfileModalUI(newUserMeta);
+        toggleProfileEditMode(false);
+        showToast('<i class="ph-fill ph-check-circle"></i> Profile updated successfully!');
+
+        // Refresh UI components
+        initUserProfile();
+      } else {
+        const errData = await res.json();
+        showToast(`<i class="ph-fill ph-x-circle"></i> Error: ${errData.msg || 'Update failed'}`);
+      }
+    } catch (err) {
+      showToast('<i class="ph-fill ph-broadcast"></i> Offline Update: Saved locally only.');
+      // Persist locally even if server is down (Offline Mode feature)
+      const newUserMeta = { ...userMeta, ...updatedData };
+      localStorage.setItem('user', JSON.stringify(newUserMeta));
+      updateProfileModalUI(newUserMeta);
+      toggleProfileEditMode(false);
+      initUserProfile();
+    }
+  });
+
+  btnCloseProfile.addEventListener('click', () => {
+    profileModal.classList.add('hidden');
   });
 
   // --------- Messaging Logic ---------
@@ -150,6 +370,28 @@ document.addEventListener('DOMContentLoaded', () => {
   btnSendChat.addEventListener('click', sendMessage);
   chatInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendMessage();
+  });
+
+  async function sendAiMessage() {
+    const text = aiInput.value.trim();
+    if (!text) return;
+
+    // Add user message to UI
+    const userMsg = document.createElement('div');
+    userMsg.className = 'ai-step';
+    userMsg.style.borderLeft = '3px solid #ec4899';
+    userMsg.innerHTML = `<strong>You:</strong> ${text}`;
+    aiGuidance.appendChild(userMsg);
+    aiInput.value = '';
+    aiGuidance.scrollTop = aiGuidance.scrollHeight;
+
+    // Fetch AI response
+    await generateAIGuidance('custom_chat', text);
+  }
+
+  btnSendAi.addEventListener('click', sendAiMessage);
+  aiInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendAiMessage();
   });
 
   function addChatMessage(msg) {
@@ -186,7 +428,9 @@ document.addEventListener('DOMContentLoaded', () => {
       lat: userLat,
       lng: userLng,
       uid: userMeta.uid,
-      name: userMeta.name || userMeta.email?.split('@')[0]
+      name: userMeta.name || userMeta.email?.split('@')[0],
+      role: userMeta.role,
+      phone: userMeta.phone
     });
   }, 10000);
 
@@ -195,14 +439,19 @@ document.addEventListener('DOMContentLoaded', () => {
     lat: userLat,
     lng: userLng,
     uid: initUserMeta.uid,
-    name: initUserMeta.name || initUserMeta.email?.split('@')[0]
+    name: initUserMeta.name || initUserMeta.email?.split('@')[0],
+    phone: initUserMeta.phone
   });
 
-  function startSosBroadcast(type, isAnon) {
+  function startSosBroadcast(data) { // Changed parameter to 'data' object
     isBroadcasting = true;
     idlePanel.classList.add('hidden');
     activePanel.classList.remove('hidden');
-    activeCrisisBadge.innerText = type.charAt(0).toUpperCase() + type.slice(1);
+    activeCrisisBadge.innerText = data.types ? data.types.join(' & ') : data.type;
+
+    // Trigger ONE AI Guidance for ALL selected domains
+    const combinedType = data.types ? data.types.join(' and ') : data.type;
+    generateAIGuidance(combinedType);
 
     map.removeLayer(userMarker);
     const sosIcon = L.divIcon({
@@ -218,10 +467,16 @@ document.addEventListener('DOMContentLoaded', () => {
     sosMarker.radiusLayer = radius;
 
     fabAi.classList.remove('hidden');
-    aiPanel.classList.add('open');
-    generateAIGuidance(type);
+    // aiPanel.classList.add('open'); // Keep it closed by default or open if you want
+    // generateAIGuidance(combinedType); // Already called above
 
-    socket.emit('trigger_sos', { type, lat: userLat, lng: userLng, isAnon });
+    socket.emit('trigger_sos', {
+      type: data.type,
+      types: data.types,
+      lat: userLat,
+      lng: userLng,
+      isAnon: data.isAnon
+    });
 
     statNotified.innerText = 'Searching...';
     showToast(`<i class="ph-fill ph-broadcast"></i> SOS Broadcasted ${isAnon ? 'Anonymously' : ''}`);
@@ -229,6 +484,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function stopSosBroadcast() {
     isBroadcasting = false;
+
+    // Clear selections
+    crisisCards.forEach(c => c.classList.remove('selected'));
+    selectedCrisis = 'Medical'; // Reset to default
+    crisisCards[0].classList.add('selected');
 
     if (currentSosId) {
       socket.emit('resolve_sos', { sosId: currentSosId });
@@ -238,8 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
     activePanel.classList.add('hidden');
     idlePanel.classList.remove('hidden');
     aiPanel.classList.remove('open');
-    chatPanel.classList.add('hidden');
-    fabAi.classList.add('hidden');
+    // fabAi.classList.add('hidden'); // REMOVED: Keep AI button visible
 
     if (watchId) {
       navigator.geolocation.clearWatch(watchId);
@@ -260,6 +519,7 @@ document.addEventListener('DOMContentLoaded', () => {
     statNotified.innerText = '0';
     statResponds.innerText = '0';
     statEta.innerText = '--';
+    generateAIGuidance(null); // Reset to general guidance
   }
 
   socket.on('sos_confirmed', (data) => {
@@ -272,6 +532,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (data.sosId === currentSosId) {
       addResponder(data.responder);
     }
+  });
+
+  socket.on('ai_automated_call', (data) => {
+    const aiMsg = document.createElement('div');
+    aiMsg.className = 'ai-step';
+    aiMsg.style.borderLeft = '3px solid #a855f7';
+    aiMsg.style.background = 'rgba(168, 85, 247, 0.1)';
+    aiMsg.innerHTML = `<i class="ph-fill ph-phone-call"></i> <strong>AI Action:</strong> ${data.message}`;
+    aiGuidance.prepend(aiMsg);
+
+    showToast(`<i class="ph-fill ph-robot"></i> AI: Notifying ${data.type} services...`);
+
+    // Optionally open AI panel to show the action
+    aiPanel.classList.add('open');
   });
 
   socket.on('new_sos', (data) => {
@@ -310,7 +584,7 @@ document.addEventListener('DOMContentLoaded', () => {
             lng: pos.coords.longitude
           });
         },
-        (err) => console.warn("Live tracking error", err),
+        (err) => { /* Live tracking error */ },
         { enableHighAccuracy: true }
       );
     }
@@ -346,6 +620,34 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast("Incident has been resolved by the broadcaster.");
   });
 
+  socket.on('ai_automated_call', (data) => {
+    // Add a special action tag to the AI guidance
+    const actionMsg = document.createElement('div');
+    actionMsg.className = 'ai-action-tag'; // Use a specific class
+    actionMsg.innerHTML = `<i class="ph-fill ph-phone-call"></i> <strong>AI Action:</strong> ${data.message}`;
+
+    // Insertion: Prepend to guidance so it's always at the top
+    if (aiGuidance.firstChild) {
+      aiGuidance.insertBefore(actionMsg, aiGuidance.firstChild);
+    } else {
+      aiGuidance.appendChild(actionMsg);
+    }
+
+    if (aiPanel.classList.contains('hidden')) {
+      showToast(`<i class="ph ph-magic-wand"></i> AI is contacting emergency services...`);
+    }
+  });
+
+  socket.on('system_message', (data) => {
+    const msg = document.createElement('div');
+    msg.className = 'ai-step';
+    msg.style.fontStyle = 'italic';
+    msg.style.color = data.type === 'ai' ? '#a855f7' : '#f43f5e';
+    msg.innerText = data.text;
+    aiGuidance.appendChild(msg);
+    aiGuidance.scrollTop = aiGuidance.scrollHeight;
+  });
+
   socket.on('responder_moved', (data) => {
     // If I am the broadcaster, update the responder's marker
     if (isBroadcasting && responderMarkers[data.responderId]) {
@@ -356,14 +658,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --------- AI Fetch Logic ---------
 
-  async function generateAIGuidance(type) {
-    // Show shimmers
-    if (aiStatusDot) {
-      aiStatusDot.className = 'ai-status-dot';
-      aiStatusDot.title = 'AI Connecting...';
+  async function generateAIGuidance(type, description = '') {
+    if (!type) {
+      aiGuidance.innerHTML = `
+        <div class="ai-step">Welcome to NearHelp AI. I'm here to assist you with any emergency or safety questions.</div>
+        <div class="ai-step">Trigger an SOS if you need immediate physical assistance from neighbours.</div>
+      `;
+      aiSummary.innerHTML = "How can I help you today? You can ask me about first aid, safety protocols, or local emergency procedures.";
+      if (aiStatusDot) {
+        aiStatusDot.className = 'ai-status-dot online';
+        aiStatusDot.title = 'AI Online';
+      }
+      return;
     }
-    aiGuidance.innerHTML = `<div class="loading-shimmer ai-shimmer"></div><div class="loading-shimmer ai-shimmer"></div>`;
-    aiSummary.innerHTML = `<div class="loading-shimmer ai-shimmer" style="height: 60px;"></div>`;
+
+    // Show loading state for custom chat
+    if (type === 'custom_chat') {
+      const loadingMsg = document.createElement('div');
+      loadingMsg.className = 'loading-shimmer ai-shimmer';
+      loadingMsg.id = 'ai-loading';
+      aiGuidance.appendChild(loadingMsg);
+      aiGuidance.scrollTop = aiGuidance.scrollHeight;
+    } else {
+      // Show shimmers for standard SOS - BUT PRESERVE ACTION TAGS
+      if (aiStatusDot) {
+        aiStatusDot.className = 'ai-status-dot';
+        aiStatusDot.title = 'AI Connecting...';
+      }
+
+      // Clear ONLY non-action elements
+      Array.from(aiGuidance.children).forEach(child => {
+        if (!child.classList.contains('ai-action-tag')) child.remove();
+      });
+
+      const s1 = document.createElement('div'); s1.className = 'loading-shimmer ai-shimmer';
+      const s2 = document.createElement('div'); s2.className = 'loading-shimmer ai-shimmer';
+      aiGuidance.appendChild(s1);
+      aiGuidance.appendChild(s2);
+
+      aiSummary.innerHTML = `<div class="loading-shimmer ai-shimmer" style="height: 60px;"></div>`;
+    }
 
     try {
       const token = localStorage.getItem('token');
@@ -373,7 +707,7 @@ document.addEventListener('DOMContentLoaded', () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ crisisType: type })
+        body: JSON.stringify({ crisisType: type, description: description })
       });
 
       const data = await response.json();
@@ -382,26 +716,55 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(data.error || 'Failed to fetch AI guidance');
       }
 
-      let html = '';
-      if (data.firstResponseGuidance && Array.isArray(data.firstResponseGuidance)) {
-        data.firstResponseGuidance.forEach((step, i) => {
-          html += `<div class="ai-step" style="animation-delay: ${i * 0.2}s">${i + 1}. ${step}</div>`;
-        });
-      }
-      aiGuidance.innerHTML = html;
+      if (type === 'custom_chat') {
+        const loading = document.getElementById('ai-loading');
+        if (loading) loading.remove();
 
-      aiSummary.innerHTML = `
-            ${data.emergencySummary || 'Summary not available.'}
-            <button class="icon-btn btn-copy" title="Copy to clipboard"><i class="ph ph-copy"></i></button>
-        `;
+        const aiMsg = document.createElement('div');
+        aiMsg.className = 'ai-step';
+        aiMsg.innerHTML = `<strong>Assistant:</strong> ${data.emergencySummary || data.firstResponseGuidance?.join(' ') || 'I am processing your request.'}`;
+        aiGuidance.appendChild(aiMsg);
+        aiGuidance.scrollTop = aiGuidance.scrollHeight;
+      } else {
+        // Clear shimmers before adding real content
+        Array.from(aiGuidance.children).forEach(child => {
+          if (child.classList.contains('loading-shimmer')) child.remove();
+        });
+
+        let html = '';
+        if (data.firstResponseGuidance && Array.isArray(data.firstResponseGuidance)) {
+          data.firstResponseGuidance.forEach((step, i) => {
+            const stepDiv = document.createElement('div');
+            stepDiv.className = 'ai-step';
+            stepDiv.style.animationDelay = `${i * 0.2}s`;
+            stepDiv.innerText = `${i + 1}. ${step}`;
+            aiGuidance.appendChild(stepDiv);
+          });
+        }
+
+        aiSummary.innerHTML = `
+                ${data.emergencySummary || 'Summary not available.'}
+                <button class="icon-btn btn-copy" title="Copy to clipboard"><i class="ph ph-copy"></i></button>
+            `;
+      }
 
       if (aiStatusDot) {
         aiStatusDot.className = 'ai-status-dot online';
         aiStatusDot.title = 'AI Online';
       }
     } catch (err) {
-      console.error("AI Error:", err);
-      aiGuidance.innerHTML = "<p style='color:var(--primary)'>Failed to load AI guidance.</p>";
+      if (type === 'custom_chat') {
+        const loading = document.getElementById('ai-loading');
+        if (loading) loading.remove();
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'ai-step';
+        errorMsg.style.color = 'var(--primary)';
+        errorMsg.innerText = "Error: Could not get AI response.";
+        aiGuidance.appendChild(errorMsg);
+      } else {
+        aiGuidance.innerHTML = "<p style='color:var(--primary)'>Failed to load AI guidance.</p>";
+        aiSummary.innerHTML = "Expert guidance is currently unavailable. Please follow standard emergency protocols.";
+      }
       if (aiStatusDot) {
         aiStatusDot.className = 'ai-status-dot offline';
         aiStatusDot.title = 'AI Offline';
@@ -425,12 +788,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const div = document.createElement('div');
     div.className = 'responder-item';
     div.innerHTML = `
-      <img src="https://i.pravatar.cc/100?img=${r.img}" alt="${r.name}">
+      <img src="${generateAvatar(r.name, 36)}" alt="${r.name}">
       <div class="responder-info">
         <span class="r-name">${r.name}</span>
         <div class="r-meta">
-          <span>ETA: ${r.time}</span>
+          <span class="${r.time === 'Active' ? 'status-active' : ''}">ETA: ${r.time}</span>
           ${r.skill !== 'Neighbour' ? `<span class="r-skill">${r.skill}</span>` : ''}
+          <span style="display:block;margin-top:4px;color:rgba(255,255,255,0.7);font-weight:600;font-size:0.8rem;">${r.phone}</span>
         </div>
       </div>
       <div class="responder-actions">
@@ -440,9 +804,10 @@ document.addEventListener('DOMContentLoaded', () => {
     respondersList.appendChild(div);
 
     // Add UI Marker
+    const responderInitial = r.name.charAt(0).toUpperCase();
     const rIcon = L.divIcon({
       className: 'custom-marker',
-      html: `<div class="marker-responder" style="background-image: url('https://i.pravatar.cc/100?img=${r.img}')"></div>`,
+      html: `<div class="marker-responder">${responderInitial}</div>`,
       iconSize: [32, 32]
     });
     responderMarkers[r.id] = L.marker([r.lat, r.lng], { icon: rIcon }).addTo(map);
@@ -476,7 +841,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const item = document.createElement('div');
       item.className = 'rating-item';
       item.innerHTML = `
-        <img src="https://i.pravatar.cc/100?img=${r.img}">
+        <img src="${generateAvatar(r.name, 40)}">
         <div style="flex:1; text-align:left;">
           <div style="font-weight:600">${r.name}</div>
           <div style="font-size:0.8rem; color:var(--text-muted)">${r.skill}</div>
@@ -510,5 +875,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Init
+  initUserProfile(); // Initialize user profile picture
   initMap();
+  generateAIGuidance(null); // Initial welcome message
 });

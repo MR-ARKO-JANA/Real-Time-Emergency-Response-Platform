@@ -6,11 +6,10 @@ const SosSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    crisisType: {
+    crisisTypes: [{
         type: String,
-        enum: ['medical', 'fire', 'security', 'other'],
-        required: true
-    },
+        enum: ['medical', 'fire', 'security', 'health', 'mechanic', 'other']
+    }],
     location: {
         type: {
             type: String,
