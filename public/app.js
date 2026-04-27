@@ -129,19 +129,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --------- Map Initialization ---------
   function initMap() {
-    map = L.map(mapElement, { zoomControl: false }).setView([userLat, userLng], 15);
+    map = L.map(mapElement, { 
+      zoomControl: true,
+      fadeAnimation: true,
+      zoomAnimation: true,
+      markerZoomAnimation: true
+    }).setView([userLat, userLng], 15);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap | NearHelp',
-      maxZoom: 19
+    // Relocate Zoom Control to bottom-right (above action panel)
+    map.zoomControl.setPosition('bottomright');
+
+    // Google Hybrid View (Satellite + Labels) - "Same to same" as requested
+    L.tileLayer('http://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+      maxZoom: 20,
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+      attribution: '&copy; Google Maps'
     }).addTo(map);
 
     const userIcon = L.divIcon({
       className: 'custom-marker',
-      html: `<div style="width:16px;height:16px;background:#3b82f6;border-radius:50%;border:3px solid white;box-shadow:0 0 10px rgba(0,0,0,0.5);"></div>`,
-      iconSize: [16, 16]
+      html: `<div class="marker-user"></div>`,
+      iconSize: [20, 20]
     });
-    userMarker = L.marker([userLat, userLng], { icon: userIcon }).addTo(map);
+    userMarker = L.marker([userLat, userLng], { 
+      icon: userIcon,
+      zIndexOffset: 1000 
+    }).addTo(map);
+
+    // Accuracy circle for user
+    userMarker.accuracyCircle = L.circle([userLat, userLng], {
+      radius: 100,
+      color: varColor('--secondary'),
+      fillColor: varColor('--secondary'),
+      fillOpacity: 0.1,
+      weight: 1
+    }).addTo(map);
 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -378,8 +400,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add user message to UI
     const userMsg = document.createElement('div');
-    userMsg.className = 'ai-step';
-    userMsg.style.borderLeft = '3px solid #ec4899';
+    userMsg.className = 'user-message';
     userMsg.innerHTML = `<strong>You:</strong> ${text}`;
     aiGuidance.appendChild(userMsg);
     aiInput.value = '';
@@ -401,9 +422,12 @@ document.addEventListener('DOMContentLoaded', () => {
       div.innerText = msg.text;
     } else {
       const isMe = msg.senderId === socket.id;
-      div.className = `message ${isMe ? 'sent' : 'received'}`;
+      const isAi = msg.isAi;
+      div.className = `message ${isMe ? 'sent' : 'received'} ${isAi ? 'ai-msg-chat' : ''}`;
       div.innerHTML = `
-        <span class="msg-sender">${isMe ? 'You' : msg.sender}</span>
+        <span class="msg-sender" ${isAi ? 'style="color:#a855f7"' : ''}>
+          ${isAi ? '<i class="ph-fill ph-magic-wand"></i> ' : ''}${isMe ? 'You' : msg.sender}
+        </span>
         ${msg.text}
       `;
     }
@@ -457,14 +481,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const sosIcon = L.divIcon({
       className: 'custom-marker',
       html: `<div class="marker-sos"><div class="marker-sos-inner"></div></div>`,
-      iconSize: [40, 40]
+      iconSize: [48, 48]
     });
-    sosMarker = L.marker([userLat, userLng], { icon: sosIcon }).addTo(map);
+    sosMarker = L.marker([userLat, userLng], { 
+      icon: sosIcon,
+      zIndexOffset: 2000 
+    }).addTo(map);
 
     const radius = L.circle([userLat, userLng], {
-      color: '#f43f5e', fillOpacity: 0.1, radius: 1000
+      color: varColor('--primary'), 
+      fillColor: varColor('--primary'),
+      fillOpacity: 0.08, 
+      radius: 1000,
+      weight: 2,
+      dashArray: '5, 10'
     }).addTo(map);
     sosMarker.radiusLayer = radius;
+
+    // Add pulsing effect to radius
+    let grow = true;
+    sosMarker.radiusInterval = setInterval(() => {
+      const currentRadius = radius.getRadius();
+      if (grow) {
+        radius.setRadius(currentRadius + 5);
+        if (currentRadius > 1050) grow = false;
+      } else {
+        radius.setRadius(currentRadius - 5);
+        if (currentRadius < 950) grow = true;
+      }
+    }, 50);
 
     fabAi.classList.remove('hidden');
     // aiPanel.classList.add('open'); // Keep it closed by default or open if you want
@@ -506,6 +551,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (sosMarker) {
+      if (sosMarker.radiusInterval) clearInterval(sosMarker.radiusInterval);
       if (sosMarker.radiusLayer) map.removeLayer(sosMarker.radiusLayer);
       map.removeLayer(sosMarker);
     }
@@ -554,16 +600,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const sIcon = L.divIcon({
         className: 'custom-marker',
-        html: `<div class="marker-sos" style="width:24px;height:24px;animation:none;"><div class="marker-sos-inner" style="width:12px;height:12px;"></div></div>`
+        html: `<div class="marker-sos" style="width:32px;height:32px;"><div class="marker-sos-inner" style="width:12px;height:12px;"></div></div>`
       });
 
       const marker = L.marker([data.lat, data.lng], { icon: sIcon }).addTo(map);
       marker.bindPopup(`
-        <div style="padding:10px;">
-          <strong style="display:block;margin-bottom:5px;">${data.type.toUpperCase()} Emergency</strong>
-          <button class="btn-primary" style="width:100%;padding:8px;font-size:0.8rem;" onclick="acceptEmergency('${data.id}')">Accept Incident</button>
+        <div class="custom-popup">
+          <span class="popup-sos-title">${data.type.toUpperCase()} Emergency</span>
+          <span class="popup-meta">Active Crisis nearby</span>
+          <button class="btn-sos" style="padding:10px; font-size:0.8rem; height:auto;" onclick="acceptEmergency('${data.id}')">
+            Accept Incident
+          </button>
         </div>
-      `).openPopup();
+      `, { closeButton: false }).openPopup();
 
       responderMarkers[data.id] = marker;
     }
@@ -640,9 +689,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   socket.on('system_message', (data) => {
     const msg = document.createElement('div');
-    msg.className = 'ai-step';
+    msg.className = 'ai-message';
     msg.style.fontStyle = 'italic';
-    msg.style.color = data.type === 'ai' ? '#a855f7' : '#f43f5e';
+    msg.style.borderLeftColor = data.type === 'ai' ? '#a855f7' : '#f43f5e';
     msg.innerText = data.text;
     aiGuidance.appendChild(msg);
     aiGuidance.scrollTop = aiGuidance.scrollHeight;
@@ -650,10 +699,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   socket.on('responder_moved', (data) => {
     // If I am the broadcaster, update the responder's marker
-    if (isBroadcasting && responderMarkers[data.responderId]) {
-      responderMarkers[data.responderId].setLatLng([data.lat, data.lng]);
+    const marker = responderMarkers[data.responderId];
+    if (isBroadcasting && marker) {
+      // Smooth movement (simple interpolation)
+      const startLatLng = marker.getLatLng();
+      const endLatLng = L.latLng(data.lat, data.lng);
+      
+      if (startLatLng.distanceTo(endLatLng) > 1) { // Only move if it's significant
+        marker.setLatLng(endLatLng);
+      }
     }
-    // Note: In Phase 3 simple version, broadcaster also uses responderMarkers to track people coming to them
   });
 
   // --------- AI Fetch Logic ---------
@@ -661,8 +716,8 @@ document.addEventListener('DOMContentLoaded', () => {
   async function generateAIGuidance(type, description = '') {
     if (!type) {
       aiGuidance.innerHTML = `
-        <div class="ai-step">Welcome to NearHelp AI. I'm here to assist you with any emergency or safety questions.</div>
-        <div class="ai-step">Trigger an SOS if you need immediate physical assistance from neighbours.</div>
+        <div class="ai-message">Welcome to NearHelp AI. I'm here to assist you with any emergency or safety questions.</div>
+        <div class="ai-message">Trigger an SOS if you need immediate physical assistance from neighbours.</div>
       `;
       aiSummary.innerHTML = "How can I help you today? You can ask me about first aid, safety protocols, or local emergency procedures.";
       if (aiStatusDot) {
@@ -721,7 +776,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (loading) loading.remove();
 
         const aiMsg = document.createElement('div');
-        aiMsg.className = 'ai-step';
+        aiMsg.className = 'ai-message';
         aiMsg.innerHTML = `<strong>Assistant:</strong> ${data.emergencySummary || data.firstResponseGuidance?.join(' ') || 'I am processing your request.'}`;
         aiGuidance.appendChild(aiMsg);
         aiGuidance.scrollTop = aiGuidance.scrollHeight;
@@ -731,11 +786,10 @@ document.addEventListener('DOMContentLoaded', () => {
           if (child.classList.contains('loading-shimmer')) child.remove();
         });
 
-        let html = '';
         if (data.firstResponseGuidance && Array.isArray(data.firstResponseGuidance)) {
           data.firstResponseGuidance.forEach((step, i) => {
             const stepDiv = document.createElement('div');
-            stepDiv.className = 'ai-step';
+            stepDiv.className = 'ai-message';
             stepDiv.style.animationDelay = `${i * 0.2}s`;
             stepDiv.innerText = `${i + 1}. ${step}`;
             aiGuidance.appendChild(stepDiv);
@@ -808,14 +862,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const rIcon = L.divIcon({
       className: 'custom-marker',
       html: `<div class="marker-responder">${responderInitial}</div>`,
-      iconSize: [32, 32]
+      iconSize: [38, 38]
     });
-    responderMarkers[r.id] = L.marker([r.lat, r.lng], { icon: rIcon }).addTo(map);
+    
+    const marker = L.marker([r.lat, r.lng], { 
+      icon: rIcon,
+      zIndexOffset: 1500
+    }).addTo(map);
+
+    marker.bindPopup(`
+      <div class="custom-popup">
+        <strong style="display:block; color:var(--secondary);">${r.name}</strong>
+        <span style="font-size:0.8rem; color:var(--text-muted);">${r.skill}</span>
+      </div>
+    `, { closeButton: false });
+
+    responderMarkers[r.id] = marker;
 
     showToast(`<i class="ph-fill ph-user-plus"></i> ${r.name} is responding!`);
   }
 
   // --------- Utilities ---------
+
+  function varColor(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
 
   function showToast(html) {
     const t = document.createElement('div');

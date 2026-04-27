@@ -50,14 +50,56 @@ body {
     top: 0;
     left: 0;
     z-index: 1;
+    background: var(--bg-dark);
 }
 
-/* Leaflet Dark Mode - Remove filter to fix map display */
+/* Custom Leaflet Controls */
+.leaflet-control-zoom {
+    border: none !important;
+    margin-right: 20px !important;
+    margin-bottom: 240px !important; /* Move above the action panel */
+    box-shadow: var(--glass-shadow) !important;
+}
+
 .leaflet-control-zoom-in,
-.leaflet-control-zoom-out,
+.leaflet-control-zoom-out {
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    color: white !important;
+    border: 1px solid var(--glass-border) !important;
+    width: 44px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+    font-size: 1.2rem !important;
+    transition: all 0.2s ease !important;
+}
+
+.leaflet-control-zoom-in:hover,
+.leaflet-control-zoom-out:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: var(--primary) !important;
+}
+
+.leaflet-bar a:first-child {
+    border-top-left-radius: 12px !important;
+    border-top-right-radius: 12px !important;
+}
+
+.leaflet-bar a:last-child {
+    border-bottom-left-radius: 12px !important;
+    border-bottom-right-radius: 12px !important;
+}
+
 .leaflet-control-attribution {
-    background: rgba(255, 255, 255, 0.9);
-    color: #333;
+    background: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(4px);
+    color: var(--text-muted) !important;
+    font-size: 10px !important;
+}
+
+.leaflet-control-attribution a {
+    color: var(--secondary) !important;
 }
 
 .hidden {
@@ -626,15 +668,33 @@ input:checked+.slider:before {
     margin-bottom: 12px;
 }
 
-.ai-step {
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: var(--radius-sm);
-    margin-bottom: 8px;
+.ai-message {
+    padding: 12px 16px;
+    background: rgba(168, 85, 247, 0.1);
+    border-radius: 16px 16px 16px 4px;
+    margin-bottom: 12px;
     font-size: 0.95rem;
-    line-height: 1.4;
+    line-height: 1.5;
     border-left: 3px solid #a855f7;
-    animation: fadeIn 0.5s ease;
+    align-self: flex-start;
+    max-width: 85%;
+    animation: fadeIn 0.3s ease;
+    color: var(--text-main);
+}
+
+.user-message {
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px 16px 4px 16px;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    border-right: 3px solid var(--secondary);
+    align-self: flex-end;
+    max-width: 85%;
+    animation: fadeIn 0.3s ease;
+    color: white;
+    text-align: right;
 }
 
 .ai-summary-box {
@@ -722,39 +782,123 @@ input:checked+.slider:before {
     display: flex;
     justify-content: center;
     align-items: center;
+    transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .marker-sos {
-    width: 40px;
-    height: 40px;
-    background: rgba(244, 63, 94, 0.2);
+    width: 48px;
+    height: 48px;
+    background: rgba(244, 63, 94, 0.15);
     border-radius: 50%;
     display: grid;
     place-items: center;
-    animation: ping 1.5s infinite;
+    position: relative;
+}
+
+.marker-sos::before,
+.marker-sos::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px solid var(--primary);
+    border-radius: 50%;
+    animation: ripple-out 2s infinite ease-out;
+}
+
+.marker-sos::after {
+    animation-delay: 1s;
+}
+
+@keyframes ripple-out {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(2.5);
+        opacity: 0;
+    }
 }
 
 .marker-sos-inner {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     background: var(--primary);
     border-radius: 50%;
-    border: 2px solid white;
+    border: 3px solid white;
+    z-index: 2;
+    box-shadow: 0 0 15px var(--primary);
 }
 
 .marker-responder {
-    width: 32px;
-    height: 32px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     border-radius: 50%;
-    border: 2px solid var(--secondary);
-    background-size: cover;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    border: 2px solid white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-weight: bold;
+    font-weight: 800;
+    font-size: 0.9rem;
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+.marker-responder:hover {
+    transform: scale(1.15) translateY(-5px);
+    z-index: 1000;
+}
+
+.marker-user {
+    width: 20px;
+    height: 20px;
+    background: var(--secondary);
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 10px var(--secondary);
+}
+
+/* Glassmorphism Popup */
+.leaflet-popup-content-wrapper {
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    color: white !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 16px !important;
+    padding: 0 !important;
+    box-shadow: var(--glass-shadow) !important;
+}
+
+.leaflet-popup-content {
+    margin: 16px !important;
+    font-family: var(--font-family) !important;
+}
+
+.leaflet-popup-tip {
+    background: var(--glass-bg) !important;
+    border: 1px solid var(--glass-border) !important;
+}
+
+.popup-sos-title {
+    color: var(--primary);
+    font-weight: 800;
+    font-size: 1.1rem;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.popup-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    display: block;
 }
 
 /* Modal */
@@ -977,6 +1121,31 @@ input:checked+.slider:before {
 
 .ai-input-area button:hover {
     transform: scale(1.1);
+}
+
+.ai-quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.ai-chip {
+    background: rgba(168, 85, 247, 0.1);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    color: #a855f7;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ai-chip:hover {
+    background: #a855f7;
+    color: white;
+    transform: translateY(-2px);
 }
 
 .crisis-card.selected {
