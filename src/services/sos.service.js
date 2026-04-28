@@ -9,13 +9,7 @@ class SOSService {
                 this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
                 // Configuration for powerful, reliable responses
                 this.model = this.genAI.getGenerativeModel({ 
-                    model: "gemini-2.0-flash",
-                    safetySettings: [
-                        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-                        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-                        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-                        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-                    ]
+                    model: "gemini-1.5-flash-latest"
                 });
             }
         } catch (err) {
@@ -64,33 +58,32 @@ class SOSService {
 
     async getChatResponse(userQuery) {
         try {
-            // Use the model to generate a free-form response like ChatGPT
+            // Check if model exists
+            if (!this.model) throw new Error("AI Model not initialized");
+
             const chat = this.model.startChat({
                 history: [
                     {
                         role: "user",
-                        parts: [{ text: "You are NearHelp AI, a powerful and empathetic assistant. You help people in emergencies but also answer general questions like ChatGPT/Gemini. Be concise but very helpful." }],
+                        parts: [{ text: "You are NearHelp AI, a powerful, smart, and friendly assistant. You function exactly like Gemini or ChatGPT. You can answer general questions, say hello, and assist with any query. However, if the user mentions an emergency, prioritize safety advice. Be helpful, concise, and professional." }],
                     },
                     {
                         role: "model",
-                        parts: [{ text: "I understand. I am NearHelp AI, ready to assist with safety, first aid, or any general queries." }],
+                        parts: [{ text: "Hello! I am NearHelp AI. I can help you with safety guidance, emergency protocols, or answer any general questions you have. How can I assist you today?" }],
                     },
                 ],
             });
 
             const result = await chat.sendMessage(userQuery);
-            const responseText = result.response.text();
-            
-            // Still wrap in the expected JSON format for the frontend
-            return { emergencySummary: responseText };
+            return { emergencySummary: result.response.text() };
         } catch (err) {
             logger.error('Chat AI error:', err);
-            // Fallback to a direct generation if chat fails
+            // Fallback to simple generation
             try {
                 const result = await this.model.generateContent(userQuery);
                 return { emergencySummary: result.response.text() };
             } catch (err2) {
-                return { emergencySummary: "I'm having a brief connection issue. However, if this is an emergency, please call 112 or alert your neighbors immediately." };
+                return { emergencySummary: "I'm having a connection issue with my brain! Please try again in a moment." };
             }
         }
     }
