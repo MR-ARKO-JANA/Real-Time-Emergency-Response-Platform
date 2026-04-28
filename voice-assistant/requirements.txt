@@ -1,0 +1,6 @@
+SpeechRecognition
+PyAudio
+python-socketio[client]
+requests
+google-generativeai
+python-dotenv

@@ -57,6 +57,9 @@ module.exports = function (io) {
 
         // 2. Broadcast SOS
         socket.on('trigger_sos', async (data) => {
+            if (data.isVoice) {
+                console.log(`[VOICE SOS] Automatic ${data.type.toUpperCase()} trigger activated: ${data.description}`);
+            }
             const sosEvent = {
                 id: `SOS-${Date.now()}`,
                 broadcasterId: socket.id,
