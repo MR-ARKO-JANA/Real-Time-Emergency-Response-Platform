@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --------- Map Initialization ---------
   function initMap() {
-    map = L.map(mapElement, { 
+    map = L.map(mapElement, {
       zoomControl: true,
       fadeAnimation: true,
       zoomAnimation: true,
@@ -139,21 +139,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // Relocate Zoom Control to bottom-right (above action panel)
     map.zoomControl.setPosition('bottomright');
 
-    // Google Hybrid View (Satellite + Labels) - "Same to same" as requested
-    L.tileLayer('http://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+    // Safety Check: Ensure Leaflet is loaded
+    if (typeof L === 'undefined') {
+      console.error("Leaflet library not loaded! Check your internet connection.");
+      showToast('<i class="ph ph-warning"></i> Map library failed to load. Please refresh.');
+      return;
+    }
+
+    // Street/Satellite Hybrid View (Premium Look)
+    L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
       maxZoom: 20,
-      subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
       attribution: '&copy; Google Maps'
     }).addTo(map);
+
+    // Force map refresh after it's added to DOM
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
 
     const userIcon = L.divIcon({
       className: 'custom-marker',
       html: `<div class="marker-user"></div>`,
       iconSize: [20, 20]
     });
-    userMarker = L.marker([userLat, userLng], { 
+    userMarker = L.marker([userLat, userLng], {
       icon: userIcon,
-      zIndexOffset: 1000 
+      zIndexOffset: 1000
     }).addTo(map);
 
     // Accuracy circle for user
@@ -242,10 +253,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   closeChat.addEventListener('click', () => chatPanel.classList.add('hidden'));
 
-  btnSendAi.addEventListener('click', sendAiMessage);
-  aiInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendAiMessage();
-  });
 
 
   btnDashboard.addEventListener('click', () => window.location.href = 'admin.html');
@@ -404,6 +411,8 @@ document.addEventListener('DOMContentLoaded', () => {
     userMsg.innerHTML = `<strong>You:</strong> ${text}`;
     aiGuidance.appendChild(userMsg);
     aiInput.value = '';
+    
+    // Auto-scroll
     aiGuidance.scrollTop = aiGuidance.scrollHeight;
 
     // Fetch AI response
@@ -442,9 +451,33 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --------- WebSocket Event Listeners ---------
-
-  const socket = io();
+  let socket;
+  if (typeof io !== 'undefined') {
+    socket = io();
+  } else {
+    console.error("Socket.io not loaded! Live features will be disabled.");
+    showToast('<i class="ph ph-warning"></i> Connection library failed to load. Live features disabled.');
+    // Create a mock socket to prevent crashes
+    socket = { on: () => {}, emit: () => {}, id: 'mock-id' };
+  }
   let currentSosId = null;
+
+  socket.on('connect', () => {
+    console.log("Connected to server via WebSocket");
+    const userMeta = JSON.parse(localStorage.getItem('user') || '{}');
+    socket.emit('update_location', {
+      lat: userLat,
+      lng: userLng,
+      uid: userMeta.uid,
+      name: userMeta.name || userMeta.email?.split('@')[0],
+      phone: userMeta.phone,
+      skill: userMeta.role || 'citizen'
+    });
+  });
+
+  socket.on('connect_error', (err) => {
+    console.error("Socket Connection Error:", err);
+  });
 
   setInterval(() => {
     const userMeta = JSON.parse(localStorage.getItem('user') || '{}');
@@ -457,15 +490,6 @@ document.addEventListener('DOMContentLoaded', () => {
       phone: userMeta.phone
     });
   }, 10000);
-
-  const initUserMeta = JSON.parse(localStorage.getItem('user') || '{}');
-  socket.emit('update_location', {
-    lat: userLat,
-    lng: userLng,
-    uid: initUserMeta.uid,
-    name: initUserMeta.name || initUserMeta.email?.split('@')[0],
-    phone: initUserMeta.phone
-  });
 
   function startSosBroadcast(data) { // Changed parameter to 'data' object
     isBroadcasting = true;
@@ -483,15 +507,15 @@ document.addEventListener('DOMContentLoaded', () => {
       html: `<div class="marker-sos"><div class="marker-sos-inner"></div></div>`,
       iconSize: [48, 48]
     });
-    sosMarker = L.marker([userLat, userLng], { 
+    sosMarker = L.marker([userLat, userLng], {
       icon: sosIcon,
-      zIndexOffset: 2000 
+      zIndexOffset: 2000
     }).addTo(map);
 
     const radius = L.circle([userLat, userLng], {
-      color: varColor('--primary'), 
+      color: varColor('--primary'),
       fillColor: varColor('--primary'),
-      fillOpacity: 0.08, 
+      fillOpacity: 0.08,
       radius: 1000,
       weight: 2,
       dashArray: '5, 10'
@@ -524,7 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     statNotified.innerText = 'Searching...';
-    showToast(`<i class="ph-fill ph-broadcast"></i> SOS Broadcasted ${isAnon ? 'Anonymously' : ''}`);
+    showToast(`<i class="ph-fill ph-broadcast"></i> SOS Broadcasted ${data.isAnon ? 'Anonymously' : ''}`);
   }
 
   function stopSosBroadcast() {
@@ -580,31 +604,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  socket.on('ai_automated_call', (data) => {
-    const aiMsg = document.createElement('div');
-    aiMsg.className = 'ai-step';
-    aiMsg.style.borderLeft = '3px solid #a855f7';
-    aiMsg.style.background = 'rgba(168, 85, 247, 0.1)';
-    aiMsg.innerHTML = `<i class="ph-fill ph-phone-call"></i> <strong>AI Action:</strong> ${data.message}`;
-    aiGuidance.prepend(aiMsg);
-
-    showToast(`<i class="ph-fill ph-robot"></i> AI: Notifying ${data.type} services...`);
-
-    // Optionally open AI panel to show the action
-    aiPanel.classList.add('open');
-  });
 
   socket.on('new_sos', (data) => {
-    if (!isBroadcasting && isResponder) {
-      showToast(`<i class="ph-fill ph-warning-circle" style="color:var(--primary)"></i> Nearby Emergency: ${data.type}`);
+    const icon = data.isVoice ? 'ph-microphone' : 'ph-warning-circle';
+    const label = data.isVoice ? 'VOICE SOS TRIGGERED' : 'Nearby Emergency';
+    showToast(`<i class="ph-fill ${icon}" style="color:var(--primary)"></i> ${label}: ${data.type}`);
 
-      const sIcon = L.divIcon({
-        className: 'custom-marker',
-        html: `<div class="marker-sos" style="width:32px;height:32px;"><div class="marker-sos-inner" style="width:12px;height:12px;"></div></div>`
-      });
+    const sIcon = L.divIcon({
+      className: 'custom-marker',
+      html: `<div class="marker-sos" style="width:32px;height:32px;"><div class="marker-sos-inner" style="width:12px;height:12px;"></div></div>`
+    });
 
-      const marker = L.marker([data.lat, data.lng], { icon: sIcon }).addTo(map);
-      marker.bindPopup(`
+    const marker = L.marker([data.lat, data.lng], { icon: sIcon }).addTo(map);
+    marker.bindPopup(`
         <div class="custom-popup">
           <span class="popup-sos-title">${data.type.toUpperCase()} Emergency</span>
           <span class="popup-meta">Active Crisis nearby</span>
@@ -614,234 +626,233 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `, { closeButton: false }).openPopup();
 
-      responderMarkers[data.id] = marker;
-    }
+    responderMarkers[data.id] = marker;
   });
 
-  window.acceptEmergency = function (sosId) {
-    socket.emit('accept_sos', { sosId });
-    showToast("You have accepted the emergency!");
-    openChat(sosId);
+window.acceptEmergency = function (sosId) {
+  socket.emit('accept_sos', { sosId });
+  showToast("You have accepted the emergency!");
+  openChat(sosId);
 
-    // Start Live Tracking
-    if (navigator.geolocation) {
-      watchId = navigator.geolocation.watchPosition(
-        (pos) => {
-          socket.emit('responder_moved', {
-            sosId,
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude
-          });
-        },
-        (err) => { /* Live tracking error */ },
-        { enableHighAccuracy: true }
-      );
+  // Start Live Tracking
+  if (navigator.geolocation) {
+    watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        socket.emit('responder_moved', {
+          sosId,
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude
+        });
+      },
+      (err) => { /* Live tracking error */ },
+      { enableHighAccuracy: true }
+    );
+  }
+
+  if (responderMarkers[sosId]) {
+    responderMarkers[sosId].closePopup();
+  }
+};
+
+socket.on('new_message', (msg) => {
+  addChatMessage(msg);
+  if (chatPanel.classList.contains('hidden')) {
+    showToast(`<i class="ph ph-chat"></i> New message available`);
+  }
+});
+
+socket.on('chat_closed', (data) => {
+  if (activeSosId === data.sosId) {
+    showToast("Incident resolved. Chat closed.");
+    chatPanel.classList.add('hidden');
+    if (watchId) {
+      navigator.geolocation.clearWatch(watchId);
+      watchId = null;
     }
+  }
+});
 
-    if (responderMarkers[sosId]) {
-      responderMarkers[sosId].closePopup();
+socket.on('sos_resolved', (data) => {
+  if (responderMarkers[data.sosId]) {
+    map.removeLayer(responderMarkers[data.sosId]);
+    delete responderMarkers[data.sosId];
+  }
+  showToast("Incident has been resolved by the broadcaster.");
+});
+
+socket.on('ai_automated_call', (data) => {
+  // Add a special action tag to the AI guidance
+  const actionMsg = document.createElement('div');
+  actionMsg.className = 'ai-action-tag'; // Use a specific class
+  actionMsg.innerHTML = `<i class="ph-fill ph-phone-call"></i> <strong>AI Action:</strong> ${data.message}`;
+
+  // Insertion: Prepend to guidance so it's always at the top
+  if (aiGuidance.firstChild) {
+    aiGuidance.insertBefore(actionMsg, aiGuidance.firstChild);
+  } else {
+    aiGuidance.appendChild(actionMsg);
+  }
+
+  if (aiPanel.classList.contains('hidden')) {
+    showToast(`<i class="ph ph-magic-wand"></i> AI is contacting emergency services...`);
+  }
+});
+
+socket.on('system_message', (data) => {
+  const msg = document.createElement('div');
+  msg.className = 'ai-message';
+  msg.style.fontStyle = 'italic';
+  msg.style.borderLeftColor = data.type === 'ai' ? '#a855f7' : '#f43f5e';
+  msg.innerText = data.text;
+  aiGuidance.appendChild(msg);
+  aiGuidance.scrollTop = aiGuidance.scrollHeight;
+});
+
+socket.on('responder_moved', (data) => {
+  // If I am the broadcaster, update the responder's marker
+  const marker = responderMarkers[data.responderId];
+  if (isBroadcasting && marker) {
+    // Smooth movement (simple interpolation)
+    const startLatLng = marker.getLatLng();
+    const endLatLng = L.latLng(data.lat, data.lng);
+
+    if (startLatLng.distanceTo(endLatLng) > 1) { // Only move if it's significant
+      marker.setLatLng(endLatLng);
     }
-  };
+  }
+});
 
-  socket.on('new_message', (msg) => {
-    addChatMessage(msg);
-    if (chatPanel.classList.contains('hidden')) {
-      showToast(`<i class="ph ph-chat"></i> New message available`);
-    }
-  });
+// --------- AI Fetch Logic ---------
 
-  socket.on('chat_closed', (data) => {
-    if (activeSosId === data.sosId) {
-      showToast("Incident resolved. Chat closed.");
-      chatPanel.classList.add('hidden');
-      if (watchId) {
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-      }
-    }
-  });
-
-  socket.on('sos_resolved', (data) => {
-    if (responderMarkers[data.sosId]) {
-      map.removeLayer(responderMarkers[data.sosId]);
-      delete responderMarkers[data.sosId];
-    }
-    showToast("Incident has been resolved by the broadcaster.");
-  });
-
-  socket.on('ai_automated_call', (data) => {
-    // Add a special action tag to the AI guidance
-    const actionMsg = document.createElement('div');
-    actionMsg.className = 'ai-action-tag'; // Use a specific class
-    actionMsg.innerHTML = `<i class="ph-fill ph-phone-call"></i> <strong>AI Action:</strong> ${data.message}`;
-
-    // Insertion: Prepend to guidance so it's always at the top
-    if (aiGuidance.firstChild) {
-      aiGuidance.insertBefore(actionMsg, aiGuidance.firstChild);
-    } else {
-      aiGuidance.appendChild(actionMsg);
-    }
-
-    if (aiPanel.classList.contains('hidden')) {
-      showToast(`<i class="ph ph-magic-wand"></i> AI is contacting emergency services...`);
-    }
-  });
-
-  socket.on('system_message', (data) => {
-    const msg = document.createElement('div');
-    msg.className = 'ai-message';
-    msg.style.fontStyle = 'italic';
-    msg.style.borderLeftColor = data.type === 'ai' ? '#a855f7' : '#f43f5e';
-    msg.innerText = data.text;
-    aiGuidance.appendChild(msg);
-    aiGuidance.scrollTop = aiGuidance.scrollHeight;
-  });
-
-  socket.on('responder_moved', (data) => {
-    // If I am the broadcaster, update the responder's marker
-    const marker = responderMarkers[data.responderId];
-    if (isBroadcasting && marker) {
-      // Smooth movement (simple interpolation)
-      const startLatLng = marker.getLatLng();
-      const endLatLng = L.latLng(data.lat, data.lng);
-      
-      if (startLatLng.distanceTo(endLatLng) > 1) { // Only move if it's significant
-        marker.setLatLng(endLatLng);
-      }
-    }
-  });
-
-  // --------- AI Fetch Logic ---------
-
-  async function generateAIGuidance(type, description = '') {
-    if (!type) {
-      aiGuidance.innerHTML = `
+async function generateAIGuidance(type, description = '') {
+  if (!type) {
+    aiGuidance.innerHTML = `
         <div class="ai-message">Welcome to NearHelp AI. I'm here to assist you with any emergency or safety questions.</div>
         <div class="ai-message">Trigger an SOS if you need immediate physical assistance from neighbours.</div>
       `;
-      aiSummary.innerHTML = "How can I help you today? You can ask me about first aid, safety protocols, or local emergency procedures.";
-      if (aiStatusDot) {
-        aiStatusDot.className = 'ai-status-dot online';
-        aiStatusDot.title = 'AI Online';
-      }
-      return;
+    aiSummary.innerHTML = "How can I help you today? You can ask me about first aid, safety protocols, or local emergency procedures.";
+    if (aiStatusDot) {
+      aiStatusDot.className = 'ai-status-dot online';
+      aiStatusDot.title = 'AI Online';
+    }
+    return;
+  }
+
+  // Show loading state for custom chat
+  if (type === 'custom_chat') {
+    const loadingMsg = document.createElement('div');
+    loadingMsg.className = 'loading-shimmer ai-shimmer';
+    loadingMsg.id = 'ai-loading';
+    aiGuidance.appendChild(loadingMsg);
+    aiGuidance.scrollTop = aiGuidance.scrollHeight;
+  } else {
+    // Show shimmers for standard SOS - BUT PRESERVE ACTION TAGS
+    if (aiStatusDot) {
+      aiStatusDot.className = 'ai-status-dot';
+      aiStatusDot.title = 'AI Connecting...';
     }
 
-    // Show loading state for custom chat
+    // Clear ONLY non-action elements
+    Array.from(aiGuidance.children).forEach(child => {
+      if (!child.classList.contains('ai-action-tag')) child.remove();
+    });
+
+    const s1 = document.createElement('div'); s1.className = 'loading-shimmer ai-shimmer';
+    const s2 = document.createElement('div'); s2.className = 'loading-shimmer ai-shimmer';
+    aiGuidance.appendChild(s1);
+    aiGuidance.appendChild(s2);
+
+    aiSummary.innerHTML = `<div class="loading-shimmer ai-shimmer" style="height: 60px;"></div>`;
+  }
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch('/api/sos/ai-guidance', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ crisisType: type, description: description })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch AI guidance');
+    }
+
     if (type === 'custom_chat') {
-      const loadingMsg = document.createElement('div');
-      loadingMsg.className = 'loading-shimmer ai-shimmer';
-      loadingMsg.id = 'ai-loading';
-      aiGuidance.appendChild(loadingMsg);
+      const loading = document.getElementById('ai-loading');
+      if (loading) loading.remove();
+
+      const aiMsg = document.createElement('div');
+      aiMsg.className = 'ai-message';
+      aiMsg.innerHTML = `<strong>Assistant:</strong> ${data.emergencySummary || data.firstResponseGuidance?.join(' ') || 'I am processing your request.'}`;
+      aiGuidance.appendChild(aiMsg);
       aiGuidance.scrollTop = aiGuidance.scrollHeight;
     } else {
-      // Show shimmers for standard SOS - BUT PRESERVE ACTION TAGS
-      if (aiStatusDot) {
-        aiStatusDot.className = 'ai-status-dot';
-        aiStatusDot.title = 'AI Connecting...';
-      }
-
-      // Clear ONLY non-action elements
+      // Clear shimmers before adding real content
       Array.from(aiGuidance.children).forEach(child => {
-        if (!child.classList.contains('ai-action-tag')) child.remove();
+        if (child.classList.contains('loading-shimmer')) child.remove();
       });
 
-      const s1 = document.createElement('div'); s1.className = 'loading-shimmer ai-shimmer';
-      const s2 = document.createElement('div'); s2.className = 'loading-shimmer ai-shimmer';
-      aiGuidance.appendChild(s1);
-      aiGuidance.appendChild(s2);
-
-      aiSummary.innerHTML = `<div class="loading-shimmer ai-shimmer" style="height: 60px;"></div>`;
-    }
-
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/sos/ai-guidance', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ crisisType: type, description: description })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch AI guidance');
+      if (data.firstResponseGuidance && Array.isArray(data.firstResponseGuidance)) {
+        data.firstResponseGuidance.forEach((step, i) => {
+          const stepDiv = document.createElement('div');
+          stepDiv.className = 'ai-message';
+          stepDiv.style.animationDelay = `${i * 0.2}s`;
+          stepDiv.innerText = `${i + 1}. ${step}`;
+          aiGuidance.appendChild(stepDiv);
+        });
       }
 
-      if (type === 'custom_chat') {
-        const loading = document.getElementById('ai-loading');
-        if (loading) loading.remove();
-
-        const aiMsg = document.createElement('div');
-        aiMsg.className = 'ai-message';
-        aiMsg.innerHTML = `<strong>Assistant:</strong> ${data.emergencySummary || data.firstResponseGuidance?.join(' ') || 'I am processing your request.'}`;
-        aiGuidance.appendChild(aiMsg);
-        aiGuidance.scrollTop = aiGuidance.scrollHeight;
-      } else {
-        // Clear shimmers before adding real content
-        Array.from(aiGuidance.children).forEach(child => {
-          if (child.classList.contains('loading-shimmer')) child.remove();
-        });
-
-        if (data.firstResponseGuidance && Array.isArray(data.firstResponseGuidance)) {
-          data.firstResponseGuidance.forEach((step, i) => {
-            const stepDiv = document.createElement('div');
-            stepDiv.className = 'ai-message';
-            stepDiv.style.animationDelay = `${i * 0.2}s`;
-            stepDiv.innerText = `${i + 1}. ${step}`;
-            aiGuidance.appendChild(stepDiv);
-          });
-        }
-
-        aiSummary.innerHTML = `
+      aiSummary.innerHTML = `
                 ${data.emergencySummary || 'Summary not available.'}
                 <button class="icon-btn btn-copy" title="Copy to clipboard"><i class="ph ph-copy"></i></button>
             `;
-      }
+    }
 
-      if (aiStatusDot) {
-        aiStatusDot.className = 'ai-status-dot online';
-        aiStatusDot.title = 'AI Online';
-      }
-    } catch (err) {
-      if (type === 'custom_chat') {
-        const loading = document.getElementById('ai-loading');
-        if (loading) loading.remove();
-        const errorMsg = document.createElement('div');
-        errorMsg.className = 'ai-step';
-        errorMsg.style.color = 'var(--primary)';
-        errorMsg.innerText = "Error: Could not get AI response.";
-        aiGuidance.appendChild(errorMsg);
-      } else {
-        aiGuidance.innerHTML = "<p style='color:var(--primary)'>Failed to load AI guidance.</p>";
-        aiSummary.innerHTML = "Expert guidance is currently unavailable. Please follow standard emergency protocols.";
-      }
-      if (aiStatusDot) {
-        aiStatusDot.className = 'ai-status-dot offline';
-        aiStatusDot.title = 'AI Offline';
-      }
+    if (aiStatusDot) {
+      aiStatusDot.className = 'ai-status-dot online';
+      aiStatusDot.title = 'AI Online';
+    }
+  } catch (err) {
+    if (type === 'custom_chat') {
+      const loading = document.getElementById('ai-loading');
+      if (loading) loading.remove();
+      const errorMsg = document.createElement('div');
+      errorMsg.className = 'ai-step';
+      errorMsg.style.color = 'var(--primary)';
+      errorMsg.innerText = "Error: Could not get AI response.";
+      aiGuidance.appendChild(errorMsg);
+    } else {
+      aiGuidance.innerHTML = "<p style='color:var(--primary)'>Failed to load AI guidance.</p>";
+      aiSummary.innerHTML = "Expert guidance is currently unavailable. Please follow standard emergency protocols.";
+    }
+    if (aiStatusDot) {
+      aiStatusDot.className = 'ai-status-dot offline';
+      aiStatusDot.title = 'AI Offline';
     }
   }
+}
 
-  // function simulateBackendInteractions() removed in favor of real WebSockets
+// function simulateBackendInteractions() removed in favor of real WebSockets
 
-  function addResponder(r) {
-    if (simulatedResponders.length === 0) respondersList.innerHTML = ''; // Clear empty state
+function addResponder(r) {
+  if (simulatedResponders.length === 0) respondersList.innerHTML = ''; // Clear empty state
 
-    simulatedResponders.push(r);
-    statResponds.innerText = simulatedResponders.length;
+  simulatedResponders.push(r);
+  statResponds.innerText = simulatedResponders.length;
 
-    // Calculate best ETA
-    const etas = simulatedResponders.map(res => parseInt(res.time.split(' ')[0]));
-    statEta.innerText = Math.min(...etas) + ' min';
+  // Calculate best ETA
+  const etas = simulatedResponders.map(res => parseInt(res.time.split(' ')[0]));
+  statEta.innerText = Math.min(...etas) + ' min';
 
-    // Add to UI List
-    const div = document.createElement('div');
-    div.className = 'responder-item';
-    div.innerHTML = `
+  // Add to UI List
+  const div = document.createElement('div');
+  div.className = 'responder-item';
+  div.innerHTML = `
       <img src="${generateAvatar(r.name, 36)}" alt="${r.name}">
       <div class="responder-info">
         <span class="r-name">${r.name}</span>
@@ -855,63 +866,63 @@ document.addEventListener('DOMContentLoaded', () => {
         <button class="btn-chat" onclick="alert('Mock Chat Opened!')"><i class="ph-fill ph-chat-teardrop-dots"></i></button>
       </div>
     `;
-    respondersList.appendChild(div);
+  respondersList.appendChild(div);
 
-    // Add UI Marker
-    const responderInitial = r.name.charAt(0).toUpperCase();
-    const rIcon = L.divIcon({
-      className: 'custom-marker',
-      html: `<div class="marker-responder">${responderInitial}</div>`,
-      iconSize: [38, 38]
-    });
-    
-    const marker = L.marker([r.lat, r.lng], { 
-      icon: rIcon,
-      zIndexOffset: 1500
-    }).addTo(map);
+  // Add UI Marker
+  const responderInitial = r.name.charAt(0).toUpperCase();
+  const rIcon = L.divIcon({
+    className: 'custom-marker',
+    html: `<div class="marker-responder">${responderInitial}</div>`,
+    iconSize: [38, 38]
+  });
 
-    marker.bindPopup(`
+  const marker = L.marker([r.lat, r.lng], {
+    icon: rIcon,
+    zIndexOffset: 1500
+  }).addTo(map);
+
+  marker.bindPopup(`
       <div class="custom-popup">
         <strong style="display:block; color:var(--secondary);">${r.name}</strong>
         <span style="font-size:0.8rem; color:var(--text-muted);">${r.skill}</span>
       </div>
     `, { closeButton: false });
 
-    responderMarkers[r.id] = marker;
+  responderMarkers[r.id] = marker;
 
-    showToast(`<i class="ph-fill ph-user-plus"></i> ${r.name} is responding!`);
+  showToast(`<i class="ph-fill ph-user-plus"></i> ${r.name} is responding!`);
+}
+
+// --------- Utilities ---------
+
+function varColor(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function showToast(html) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = html;
+  toastContainer.appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = '0';
+    setTimeout(() => t.remove(), 300);
+  }, 4000);
+}
+
+function showResolveModal() {
+  resolveModal.classList.remove('hidden');
+  ratingList.innerHTML = '';
+
+  if (simulatedResponders.length === 0) {
+    ratingList.innerHTML = '<p style="color:var(--text-muted)">No registered responders for this event.</p>';
+    return;
   }
 
-  // --------- Utilities ---------
-
-  function varColor(name) {
-    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  }
-
-  function showToast(html) {
-    const t = document.createElement('div');
-    t.className = 'toast';
-    t.innerHTML = html;
-    toastContainer.appendChild(t);
-    setTimeout(() => {
-      t.style.opacity = '0';
-      setTimeout(() => t.remove(), 300);
-    }, 4000);
-  }
-
-  function showResolveModal() {
-    resolveModal.classList.remove('hidden');
-    ratingList.innerHTML = '';
-
-    if (simulatedResponders.length === 0) {
-      ratingList.innerHTML = '<p style="color:var(--text-muted)">No registered responders for this event.</p>';
-      return;
-    }
-
-    simulatedResponders.forEach(r => {
-      const item = document.createElement('div');
-      item.className = 'rating-item';
-      item.innerHTML = `
+  simulatedResponders.forEach(r => {
+    const item = document.createElement('div');
+    item.className = 'rating-item';
+    item.innerHTML = `
         <img src="${generateAvatar(r.name, 40)}">
         <div style="flex:1; text-align:left;">
           <div style="font-weight:600">${r.name}</div>
@@ -925,28 +936,28 @@ document.addEventListener('DOMContentLoaded', () => {
           <i class="ph-fill ph-star" data-val="5"></i>
         </div>
       `;
-      ratingList.appendChild(item);
+    ratingList.appendChild(item);
 
-      // Simple star UI logic
-      const stars = item.querySelectorAll('.ph-star');
-      stars.forEach(s => {
-        s.addEventListener('click', (e) => {
-          const val = parseInt(e.target.getAttribute('data-val'));
-          stars.forEach(st => {
-            if (parseInt(st.getAttribute('data-val')) <= val) st.classList.add('active');
-            else st.classList.remove('active');
-          });
+    // Simple star UI logic
+    const stars = item.querySelectorAll('.ph-star');
+    stars.forEach(s => {
+      s.addEventListener('click', (e) => {
+        const val = parseInt(e.target.getAttribute('data-val'));
+        stars.forEach(st => {
+          if (parseInt(st.getAttribute('data-val')) <= val) st.classList.add('active');
+          else st.classList.remove('active');
         });
       });
     });
-  }
+  });
+}
 
-  function hideResolveModal() {
-    resolveModal.classList.add('hidden');
-  }
+function hideResolveModal() {
+  resolveModal.classList.add('hidden');
+}
 
-  // Init
-  initUserProfile(); // Initialize user profile picture
-  initMap();
-  generateAIGuidance(null); // Initial welcome message
+// Init
+initUserProfile(); // Initialize user profile picture
+initMap();
+generateAIGuidance(null); // Initial welcome message
 });
