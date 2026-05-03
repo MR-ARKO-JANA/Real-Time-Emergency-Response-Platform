@@ -8,7 +8,7 @@ import os
 from dotenv import load_dotenv
 
 # Configuration
-SERVER_URL = "http://localhost:3000"
+SERVER_URL = "https://nearhelp-service-127178207448.us-central1.run.app"
 
 # ── Emergency Keywords (mapped to categories) ──
 MEDICAL_KEYWORDS = [
@@ -60,14 +60,38 @@ _last_sos_time = 0
 sio = socketio.Client()
 
 def get_location():
-    """Fetches approximate location based on IP address."""
+    """
+    Fetches real location. Priority:
+    1. Manual override in .env (LAT/LNG)
+    2. IP-based geolocation (ipinfo.io)
+    3. Default Fallback (Jamshedpur)
+    """
+    # 1. Manual Override for Testing
+    env_lat = os.getenv("LAT")
+    env_lng = os.getenv("LNG")
+    if env_lat and env_lng:
+        try:
+            return float(env_lat), float(env_lng)
+        except: pass
+
+    # 2. IP-based Geolocation
     try:
-        response = requests.get("http://ip-api.com/json/")
+        # Using ipinfo.io as it's often more accurate for city-level data
+        response = requests.get("https://ipinfo.io/json")
         data = response.json()
-        if data['status'] == 'success':
-            return data['lat'], data['lon']
+        if 'loc' in data:
+            lat, lon = data['loc'].split(',')
+            return float(lat), float(lon)
     except Exception as e:
-        print(f"Error fetching location: {e}")
+        print(f"  [LOC] IP Lookup failed: {e}. Trying secondary service...")
+        try:
+            response = requests.get("http://ip-api.com/json/")
+            data = response.json()
+            if data['status'] == 'success':
+                return data['lat'], data['lon']
+        except: pass
+    
+    # 3. Final Fallback
     return 22.7745, 86.1439 
 
 @sio.event

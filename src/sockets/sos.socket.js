@@ -139,6 +139,20 @@ module.exports = function (io) {
                     });
                 });
 
+                // ── Global Broadcast for Voice SOS (Safety override) ──
+                if (data.isVoice) {
+                    const responderIds = new Set(targetedResponders.map(r => r.sId));
+                    for (const [sId, uData] of connectedUsers.entries()) {
+                        if (sId !== socket.id && !responderIds.has(sId)) {
+                            io.to(sId).emit('new_sos', {
+                                ...sosEvent,
+                                priority: 3,
+                                matchedDomain: "Global Alert (Voice)"
+                            });
+                        }
+                    }
+                }
+
                 crisisTypes.forEach(type => {
                     socket.emit('ai_automated_call', {
                         type: type,
