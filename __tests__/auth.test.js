@@ -1,10 +1,10 @@
 const request = require('supertest');
 const express = require('express');
-const authRoutes = require('../routes/auth.routes');
-const User = require('../models/user.model');
+const authRoutes = require('../src/api/routes/auth.routes');
+const User = require('../src/models/user.model');
 
 // Mock the User model
-jest.mock('../models/user.model');
+jest.mock('../src/models/user.model');
 
 const app = express();
 app.use(express.json());

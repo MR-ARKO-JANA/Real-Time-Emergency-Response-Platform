@@ -58,7 +58,9 @@ module.exports = function (io) {
         // 2. Broadcast SOS
         socket.on('trigger_sos', async (data) => {
             if (data.isVoice) {
-                console.log(`[VOICE SOS] Automatic ${data.type.toUpperCase()} trigger activated: ${data.description}`);
+                const conf = data.confidence != null ? ` [conf=${(data.confidence * 100).toFixed(0)}%]` : '';
+                const urg = data.urgency ? ` [urgency=${data.urgency.toUpperCase()}]` : '';
+                console.log(`[VOICE SOS] Automatic ${data.type.toUpperCase()} trigger activated${conf}${urg}: ${data.description}`);
             }
             const sosEvent = {
                 id: `SOS-${Date.now()}`,
@@ -67,6 +69,9 @@ module.exports = function (io) {
                 lat: data.lat,
                 lng: data.lng,
                 isAnon: data.isAnon,
+                isVoice: data.isVoice || false,
+                confidence: data.confidence || null,
+                urgency: data.urgency || null,
                 responders: [],
                 status: 'active'
             };

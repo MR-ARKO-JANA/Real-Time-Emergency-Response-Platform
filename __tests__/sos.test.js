@@ -1,10 +1,10 @@
 const request = require('supertest');
 const express = require('express');
-const sosRoutes = require('../routes/sos.routes');
-const SOS = require('../models/sos.model');
+const sosRoutes = require('../src/api/routes/sos.routes');
+const SOS = require('../src/models/sos.model');
 
 // Mock the SOS model
-jest.mock('../models/sos.model');
+jest.mock('../src/models/sos.model');
 
 const app = express();
 app.use(express.json());

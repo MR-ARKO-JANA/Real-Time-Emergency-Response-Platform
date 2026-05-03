@@ -1,4 +1,4 @@
-const { schemas } = require('../middleware/validation.middleware');
+const { schemas } = require('../src/api/middlewares/validation.middleware');
 
 describe('Validation Schemas', () => {
     describe('syncUser schema', () => {

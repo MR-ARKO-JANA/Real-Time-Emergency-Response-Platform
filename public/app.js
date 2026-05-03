@@ -608,7 +608,15 @@ document.addEventListener('DOMContentLoaded', () => {
   socket.on('new_sos', (data) => {
     const icon = data.isVoice ? 'ph-microphone' : 'ph-warning-circle';
     const label = data.isVoice ? 'VOICE SOS TRIGGERED' : 'Nearby Emergency';
-    showToast(`<i class="ph-fill ${icon}" style="color:var(--primary)"></i> ${label}: ${data.type}`);
+    
+    let voiceMeta = '';
+    if (data.isVoice) {
+      const conf = data.confidence ? ` [${(data.confidence * 100).toFixed(0)}% Conf]` : '';
+      const urg = data.urgency ? ` [${data.urgency.toUpperCase()}]` : '';
+      voiceMeta = `${conf}${urg}`;
+    }
+
+    showToast(`<i class="ph-fill ${icon}" style="color:var(--primary)"></i> ${label}: ${data.type}${voiceMeta}`);
 
     const sIcon = L.divIcon({
       className: 'custom-marker',
@@ -616,10 +624,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const marker = L.marker([data.lat, data.lng], { icon: sIcon }).addTo(map);
+    
+    const metaHtml = data.isVoice ? `
+      <div style="margin-bottom:8px; font-size:0.75rem; color:var(--text-muted); display:flex; gap:8px;">
+        <span style="background:rgba(168,85,247,0.15); color:#a855f7; padding:2px 6px; border-radius:4px;">
+          <i class="ph-fill ph-microphone"></i> VOICE
+        </span>
+        ${data.urgency ? `<span style="background:rgba(244,63,94,0.15); color:var(--primary); padding:2px 6px; border-radius:4px;">${data.urgency.toUpperCase()}</span>` : ''}
+      </div>
+    ` : '';
+
     marker.bindPopup(`
         <div class="custom-popup">
           <span class="popup-sos-title">${data.type.toUpperCase()} Emergency</span>
-          <span class="popup-meta">Active Crisis nearby</span>
+          ${metaHtml}
+          <span class="popup-meta" style="margin-bottom:12px;">Active Crisis nearby: ${data.description || 'No description provided.'}</span>
           <button class="btn-sos" style="padding:10px; font-size:0.8rem; height:auto;" onclick="acceptEmergency('${data.id}')">
             Accept Incident
           </button>
