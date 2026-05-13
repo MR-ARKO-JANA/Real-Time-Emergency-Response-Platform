@@ -43,12 +43,15 @@ def trigger_sos(phrase_detected):
     })
     
     sos_payload = {
-        "type": "Voice Trigger",
+        "type": "security", # Use a standard category
         "lat": lat,
         "lng": lng,
         "isAnon": False,
-        "types": ["police", "security"],
-        "description": f"Voice-activated SOS triggered by phrase: '{phrase_detected}'"
+        "types": ["security"],
+        "description": f"Voice-activated SOS triggered by phrase: '{phrase_detected}'",
+        "isVoice": True,
+        "confidence": 0.95,
+        "urgency": "high"
     }
     
     if sio.connected:
