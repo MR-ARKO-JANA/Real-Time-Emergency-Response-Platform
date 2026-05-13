@@ -16,7 +16,9 @@ module.exports = async () => {
             return;
         }
     } catch (error) {
-        logger.warn('MongoDB Atlas connection failed (likely IP whitelist issue). Falling back to local MongoDB...');
+        logger.warn('MongoDB Atlas connection failed. Error details: ' + error.message);
+        console.error(error);
+        logger.warn('Falling back to local MongoDB...');
     }
 
     try {
