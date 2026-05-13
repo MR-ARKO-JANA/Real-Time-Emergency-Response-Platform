@@ -6,6 +6,7 @@ module.exports = async () => {
     const localUri = 'mongodb://127.0.0.1:27017/nearhelp';
 
     try {
+        console.log("Checking MONGO_URI in process.env. Is it set?", !!process.env.MONGO_URI);
         if (atlasUri) {
             logger.info('Attempting to connect to MongoDB Atlas...');
             await mongoose.connect(atlasUri, {
