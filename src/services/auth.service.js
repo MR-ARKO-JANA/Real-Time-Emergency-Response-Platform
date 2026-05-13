@@ -41,7 +41,15 @@ class AuthService {
             }
         });
 
-        await user.save();
+        try {
+            await user.save();
+        } catch (saveErr) {
+            if (saveErr.code === 11000) {
+                const field = Object.keys(saveErr.keyPattern || {})[0] || 'field';
+                return { status: 409, data: { msg: `An account with this ${field} already exists. Please sign in instead.` } };
+            }
+            throw saveErr;
+        }
         logger.info('User synced with MongoDB:', email);
         return { status: 201, data: { msg: 'User synced successfully', user } };
     }

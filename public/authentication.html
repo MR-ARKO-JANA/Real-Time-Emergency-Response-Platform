@@ -238,8 +238,17 @@
                     alert("Account created successfully!");
                     localStorage.setItem("user", JSON.stringify({ email: user.email, uid: user.uid, name: name, phone: phone, role: role }));
                     signinTab.click();
+                } else if (res.status === 409) {
+                    // Account already exists in DB
+                    alert(data.msg || "Account already exists. Please sign in instead.");
+                    localStorage.setItem("user", JSON.stringify({ email: user.email, uid: user.uid, name: name, phone: phone, role: role }));
+                    signinTab.click();
                 } else {
-                    const errorMsg = data.msg || data.error || (data.details && data.details[0].message) || "Unknown error";
+                    let errorMsg = data.msg || data.error || "Unknown error";
+                    if (typeof errorMsg === 'object') errorMsg = JSON.stringify(errorMsg);
+                    if (data.details && Array.isArray(data.details)) {
+                        errorMsg = data.details.map(d => d.message).join(', ');
+                    }
                     alert("Account created in Firebase, but sync failed: " + errorMsg);
                 }
 

@@ -7,6 +7,11 @@ exports.syncUser = async (req, res) => {
         return res.status(result.status).json(result.data);
     } catch (err) {
         logger.error('Sync Error:', err);
+        // Handle MongoDB duplicate key errors
+        if (err.code === 11000) {
+            const field = Object.keys(err.keyPattern || {})[0] || 'field';
+            return res.status(409).json({ msg: `An account with this ${field} already exists. Please sign in instead.` });
+        }
         res.status(500).json({ msg: err.message || 'Server Error' });
     }
 };
