@@ -253,8 +253,17 @@
                 }
 
             } catch (err) {
-                alert("Creation Error: " + err.message);
                 console.error(err);
+                const code = err.code || '';
+                if (code === 'auth/email-already-in-use') {
+                    alert("This email is already registered. Please sign in instead.");
+                } else if (code === 'auth/weak-password') {
+                    alert("Password is too weak. Please use at least 6 characters.");
+                } else if (code === 'auth/invalid-email') {
+                    alert("Please enter a valid email address.");
+                } else {
+                    alert("Signup failed: " + err.message);
+                }
             }
         });
 
@@ -295,8 +304,19 @@
                 window.location.href = "index.html";
 
             } catch (err) {
-                alert("Login Error: " + err.message);
                 console.error(err);
+                const code = err.code || '';
+                if (code === 'auth/invalid-credential' || code === 'auth/wrong-password') {
+                    alert("Incorrect email or password. Please try again.");
+                } else if (code === 'auth/user-not-found') {
+                    alert("No account found with this email. Please sign up first.");
+                } else if (code === 'auth/too-many-requests') {
+                    alert("Too many failed attempts. Please wait a moment and try again.");
+                } else if (code === 'auth/invalid-email') {
+                    alert("Please enter a valid email address.");
+                } else {
+                    alert("Login failed: " + err.message);
+                }
             }
         });
     </script>
