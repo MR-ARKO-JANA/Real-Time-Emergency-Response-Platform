@@ -5,7 +5,7 @@ import time
 import sys
 
 # Configuration
-SERVER_URL = "http://localhost:3000"
+SERVER_URL = "https://nearhelp-service-127178207448.us-central1.run.app"
 
 # Initialize Socket.io client
 sio = socketio.Client()
