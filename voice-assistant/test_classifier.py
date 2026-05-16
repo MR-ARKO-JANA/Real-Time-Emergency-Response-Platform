@@ -6,6 +6,7 @@ Run: python voice-assistant/test_classifier.py
 """
 import sys
 import os
+import time
 sys.path.insert(0, os.path.dirname(__file__))
 
 from voice_sos import check_emergency_intent
@@ -68,6 +69,9 @@ for text, expected_emergency, expected_category in TEST_CASES:
         print(f"   ⚠ Category: expected={expected_category}, got={category}")
     if is_emergency:
         print(f"   → {category} | conf={confidence} | urgency={urgency} | {reason}")
+
+    # Delay to stay under the 15 requests/minute free tier quota
+    time.sleep(4)
 
 print(f"\n{'=' * 70}")
 accuracy = (passed / len(TEST_CASES)) * 100

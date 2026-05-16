@@ -72,7 +72,8 @@ def get_location():
     if env_lat and env_lng:
         try:
             return float(env_lat), float(env_lng)
-        except: pass
+        except Exception:
+            pass
 
     # 2. IP-based Geolocation
     try:
@@ -89,7 +90,8 @@ def get_location():
             data = response.json()
             if data['status'] == 'success':
                 return data['lat'], data['lon']
-        except: pass
+        except Exception:
+            pass
     
     # 3. Final Fallback
     return 22.7745, 86.1439 
@@ -162,10 +164,8 @@ def check_emergency_intent(text):
         api_key = os.getenv("GEMINI_API_KEY")
         
         if api_key:
-            import google.generativeai as genai
-            genai.configure(api_key=api_key)
-            # Use gemini-2.0-flash as it is known to work in this environment
-            model = genai.GenerativeModel('gemini-2.0-flash')
+            from google import genai
+            client = genai.Client(api_key=api_key)
             
             prompt = f"""### ROLE
 You are the Real-Time Intent Classifier for NearHelp, an emergency SOS platform. Your task is to analyze audio-transcribed text and determine if the user is in immediate danger.
@@ -187,7 +187,10 @@ Return a JSON object with exactly these fields:
 ### CRITICAL INSTRUCTION
 If the user sounds panicked or the intent is ambiguous but potentially dangerous, default to "is_emergency": true. Accuracy is life-critical."""
 
-            response = model.generate_content(prompt)
+            response = client.models.generate_content(
+                model='gemini-2.0-flash',
+                contents=prompt
+            )
             res_text = response.text.strip()
             if "```json" in res_text:
                 res_text = res_text.split("```json")[1].split("```")[0].strip()
