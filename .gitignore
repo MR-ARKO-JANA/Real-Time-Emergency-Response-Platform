@@ -38,3 +38,11 @@ config/firebase-service-account.json
 
 # Docker
 .dockerignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/

@@ -3,9 +3,15 @@ import requests
 import json
 import time
 import sys
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
+load_dotenv()  # Fallback for local directory .env
 
 # Configuration
-SERVER_URL = "https://nearhelp-service-127178207448.us-central1.run.app"
+SERVER_URL = os.getenv("SERVER_URL", "https://nearhelp-service-127178207448.us-central1.run.app")
 
 # Initialize Socket.io client
 sio = socketio.Client()
@@ -62,7 +68,7 @@ def trigger_sos(phrase_detected):
 
 def main():
     try:
-        sio.connect(SERVER_URL)
+        sio.connect(SERVER_URL, transports=['websocket'])
         print("\n--- NearHelp Voice Assistant TEST MODE ---")
         print("Waiting 5 seconds before simulated trigger...")
         time.sleep(5)

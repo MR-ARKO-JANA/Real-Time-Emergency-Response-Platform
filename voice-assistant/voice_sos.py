@@ -7,8 +7,12 @@ import sys
 import os
 from dotenv import load_dotenv
 
+# Load environment variables
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
+load_dotenv()  # Fallback for local directory .env
+
 # Configuration
-SERVER_URL = "https://nearhelp-service-127178207448.us-central1.run.app"
+SERVER_URL = os.getenv("SERVER_URL", "https://nearhelp-service-127178207448.us-central1.run.app")
 
 # ── Emergency Keywords (mapped to categories) ──
 MEDICAL_KEYWORDS = [
@@ -160,7 +164,6 @@ def check_emergency_intent(text):
     
     # ── Stage 1: AI-Powered Classification ──
     try:
-        load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
         api_key = os.getenv("GEMINI_API_KEY")
         
         if api_key:
@@ -254,7 +257,7 @@ def _categorize_text(text):
 
 def main():
     try:
-        sio.connect(SERVER_URL)
+        sio.connect(SERVER_URL, transports=['websocket'])
     except:
         print("Waiting for server...")
 
@@ -267,7 +270,7 @@ def main():
     while True:
         try:
             if not sio.connected:
-                try: sio.connect(SERVER_URL)
+                try: sio.connect(SERVER_URL, transports=['websocket'])
                 except: pass
 
             with microphone as source:
