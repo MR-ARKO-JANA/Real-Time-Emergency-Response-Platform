@@ -992,6 +992,7 @@ function hideResolveModal() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   let recognition;
   let isListening = false;
+  let isRecognitionRunning = false;
 
   function setMicState(listening) {
     isListening = listening;
@@ -1033,6 +1034,10 @@ function hideResolveModal() {
     recognition.interimResults = false;
     recognition.lang = 'en-US';
 
+    recognition.onstart = () => {
+      isRecognitionRunning = true;
+    };
+
     recognition.onresult = (event) => {
       const resultIndex = event.resultIndex;
       const transcript = event.results[resultIndex][0].transcript.trim().toLowerCase();
@@ -1050,6 +1055,7 @@ function hideResolveModal() {
     };
 
     recognition.onend = () => {
+      isRecognitionRunning = false;
       if (isListening) {
         try {
           recognition.start();
@@ -1065,6 +1071,19 @@ function hideResolveModal() {
 
     // Automatically start voice listening on startup
     setMicState(true);
+
+    // Fallback for browsers that block SpeechRecognition start without user gesture (e.g. Safari, Firefox)
+    const startOnGesture = () => {
+      if (isListening && !isRecognitionRunning) {
+        try {
+          recognition.start();
+        } catch (e) {
+          // Already running or permission prompt in progress
+        }
+      }
+    };
+    document.addEventListener('click', startOnGesture, { once: true });
+    document.addEventListener('keydown', startOnGesture, { once: true });
   } else {
     btnMicToggle.style.opacity = '0.5';
     btnMicToggle.style.cursor = 'not-allowed';

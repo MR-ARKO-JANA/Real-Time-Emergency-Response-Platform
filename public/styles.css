@@ -1282,3 +1282,19 @@ input:checked+.slider:before {
 .detail-item input::placeholder {
     color: var(--text-muted);
 }
+
+/* Microphone Pulsing Animation */
+@keyframes pulse-btn {
+    0% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 2px rgba(244, 63, 94, 0.4));
+    }
+    50% {
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 10px rgba(244, 63, 94, 0.8));
+    }
+    100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 2px rgba(244, 63, 94, 0.4));
+    }
+}
