@@ -594,6 +594,11 @@ document.addEventListener('DOMContentLoaded', () => {
     statResponds.innerText = '0';
     statEta.innerText = '--';
     generateAIGuidance(null); // Reset to general guidance
+
+    // Automatically resume voice listening
+    if (SpeechRecognition) {
+      setMicState(true);
+    }
   }
 
   socket.on('sos_confirmed', (data) => {
@@ -1057,6 +1062,9 @@ function hideResolveModal() {
     btnMicToggle.addEventListener('click', () => {
       setMicState(!isListening);
     });
+
+    // Automatically start voice listening on startup
+    setMicState(true);
   } else {
     btnMicToggle.style.opacity = '0.5';
     btnMicToggle.style.cursor = 'not-allowed';
