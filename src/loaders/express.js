@@ -13,6 +13,9 @@ const authRoutes = require('../api/routes/auth.routes');
 const sosRoutes = require('../api/routes/sos.routes');
 
 module.exports = async ({ app }) => {
+    // Trust Proxy (required for express-rate-limit on Cloud Run/proxies)
+    app.set('trust proxy', 1);
+
     // Logging
     app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
 
@@ -25,7 +28,8 @@ module.exports = async ({ app }) => {
     const limiter = rateLimit({
         windowMs: 15 * 60 * 1000,
         max: 500,
-        message: 'Too many requests from this IP, please try again after 15 minutes'
+        message: 'Too many requests from this IP, please try again after 15 minutes',
+        validate: { trustProxy: false }
     });
     app.use('/api/', limiter);
 
