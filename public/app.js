@@ -544,7 +544,11 @@ document.addEventListener('DOMContentLoaded', () => {
       types: data.types,
       lat: userLat,
       lng: userLng,
-      isAnon: data.isAnon
+      isAnon: data.isAnon,
+      isVoice: data.isVoice || false,
+      confidence: data.confidence || null,
+      urgency: data.urgency || null,
+      description: data.description || null
     });
 
     statNotified.innerText = 'Searching...';
@@ -974,6 +978,150 @@ function showResolveModal() {
 function hideResolveModal() {
   resolveModal.classList.add('hidden');
 }
+
+  // --------- Browser-Based Voice SOS Trigger (Web Speech API) ---------
+  const btnMicToggle = document.getElementById('btn-mic-toggle');
+  const micIcon = document.getElementById('mic-icon');
+  const micText = document.getElementById('mic-text');
+  
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition;
+  let isListening = false;
+
+  function setMicState(listening) {
+    isListening = listening;
+    if (listening) {
+      btnMicToggle.style.background = 'rgba(244, 63, 94, 0.2)';
+      btnMicToggle.style.borderColor = 'var(--primary)';
+      btnMicToggle.style.color = 'var(--primary)';
+      micIcon.className = 'ph-fill ph-microphone-stage';
+      micIcon.style.color = 'var(--primary)';
+      micIcon.style.animation = 'pulse-btn 1.5s infinite';
+      micText.innerText = 'Listening... Speak now';
+      
+      try {
+        recognition.start();
+        showToast('<i class="ph ph-microphone"></i> Microphone active. Listening for emergency keywords...');
+      } catch (err) {
+        console.error("Failed to start SpeechRecognition:", err);
+      }
+    } else {
+      btnMicToggle.style.background = 'rgba(255,255,255,0.05)';
+      btnMicToggle.style.borderColor = 'rgba(255,255,255,0.1)';
+      btnMicToggle.style.color = '#e0e0e0';
+      micIcon.className = 'ph ph-microphone';
+      micIcon.style.color = '#a855f7';
+      micIcon.style.animation = 'none';
+      micText.innerText = 'Enable Voice Trigger';
+      
+      try {
+        recognition.stop();
+      } catch (err) {
+        // Silently catch if not started
+      }
+    }
+  }
+
+  if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onresult = (event) => {
+      const resultIndex = event.resultIndex;
+      const transcript = event.results[resultIndex][0].transcript.trim().toLowerCase();
+      console.log("Speech recognized:", transcript);
+      
+      handleBrowserSpeech(transcript);
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech Recognition Error:", event.error);
+      if (event.error === 'not-allowed') {
+        showToast('<i class="ph ph-warning"></i> Microphone permission denied.');
+        setMicState(false);
+      }
+    };
+
+    recognition.onend = () => {
+      if (isListening) {
+        try {
+          recognition.start();
+        } catch (e) {
+          // Already running
+        }
+      }
+    };
+
+    btnMicToggle.addEventListener('click', () => {
+      setMicState(!isListening);
+    });
+  } else {
+    btnMicToggle.style.opacity = '0.5';
+    btnMicToggle.style.cursor = 'not-allowed';
+    micText.innerText = 'Voice Trigger Unsupported';
+    console.warn("Speech Recognition not supported in this browser.");
+  }
+
+  function handleBrowserSpeech(text) {
+    const medicalKeywords = ["medical", "doctor", "ambulance", "hospital", "heart", "breathing", "bleeding", "wound", "choking", "poison", "seizure", "stroke", "collapsed", "unconscious", "chest pain", "not breathing", "faint"];
+    const fireKeywords = ["fire", "smoke", "burn", "burning", "flames"];
+    const securityKeywords = ["police", "attack", "stab", "gun", "robbery", "theft", "kidnap", "assault", "threat", "stalking", "stalk", "stalker", "following", "followed"];
+    const mechanicKeywords = ["mechanic", "car broke", "flat tire", "accident", "crash", "collision"];
+    const generalKeywords = ["help", "emergency", "save", "danger", "stop", "don't", "run", "panic", "trapped", "drowning", "safety", "bachao", "madad", "police ko bulao", "khatra"];
+
+    const triggerPhrases = [
+      "i need help", "help me", "save me", "call the police",
+      "emergency emergency", "someone help", "i'm in danger",
+      "stop it", "get away", "call 112", "call 100", "medical help",
+      "i've been in a car accident", "there's been an accident",
+      "someone is hurt", "i can't breathe", "i'm trapped"
+    ];
+
+    const hasTriggerPhrase = triggerPhrases.some(phrase => text.includes(phrase));
+    const hasSecurity = securityKeywords.some(word => text.includes(word));
+    const hasMedical = medicalKeywords.some(word => text.includes(word));
+    const hasFire = fireKeywords.some(word => text.includes(word));
+    const hasMechanic = mechanicKeywords.some(word => text.includes(word));
+    const hasGeneral = generalKeywords.some(word => text.includes(word));
+
+    let isEmergency = false;
+    let category = "security"; // Default
+    let reason = "";
+
+    if (hasTriggerPhrase) {
+      isEmergency = true;
+      reason = `Phrase match: ${text}`;
+    } else if (hasSecurity || hasMedical || hasFire || hasMechanic || hasGeneral) {
+      isEmergency = true;
+      reason = `Keyword match: ${text}`;
+    }
+
+    if (hasMedical) category = "medical";
+    else if (hasFire) category = "fire";
+    else if (hasMechanic) category = "mechanic";
+    else if (hasSecurity) category = "security";
+
+    if (isEmergency) {
+      showToast(`<i class="ph-fill ph-microphone"></i> Voice SOS Triggered: ${category.toUpperCase()}`);
+      
+      const sosData = {
+        type: category,
+        types: [category],
+        lat: userLat,
+        lng: userLng,
+        isAnon: anonToggle.checked,
+        isVoice: true,
+        confidence: 0.8,
+        urgency: "high",
+        description: `Browser Voice Trigger: ${reason}`
+      };
+      
+      startSosBroadcast(sosData);
+      setMicState(false);
+    }
+  }
 
 // Init
 initUserProfile(); // Initialize user profile picture

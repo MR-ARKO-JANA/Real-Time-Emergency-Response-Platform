@@ -23,6 +23,13 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    @keyframes pulse-btn {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+  </style>
 </head>
 
 <body>
@@ -90,6 +97,13 @@
       <span>Hold to Broadcast SOS</span>
       <div class="pulse-ring"></div>
     </button>
+
+    <div style="display: flex; gap: 10px; width: 100%; justify-content: center; margin-top: 15px; margin-bottom: 5px;">
+      <button id="btn-mic-toggle" style="width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #e0e0e0; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; justify-content: center; font-family: inherit;">
+        <i class="ph ph-microphone" id="mic-icon" style="font-size: 1.2rem; color: #a855f7;"></i>
+        <span id="mic-text">Enable Voice Trigger</span>
+      </button>
+    </div>
 
     <div class="anonymous-toggle-container">
       <label class="checkbox-container">
