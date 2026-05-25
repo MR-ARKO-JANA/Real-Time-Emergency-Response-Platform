@@ -23,7 +23,8 @@ MEDICAL_KEYWORDS = [
 FIRE_KEYWORDS = ["fire", "smoke", "burn", "burning", "flames"]
 SECURITY_KEYWORDS = [
     "police", "attack", "stab", "gun", "robbery", "theft", "kidnap",
-    "assault", "threat", "stalking"
+    "assault", "threat", "stalking", "stalk", "stalker", "following",
+    "followed"
 ]
 MECHANIC_KEYWORDS = ["mechanic", "car broke", "flat tire", "accident", "crash", "collision"]
 GENERAL_KEYWORDS = [
