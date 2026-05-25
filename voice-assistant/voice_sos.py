@@ -264,9 +264,17 @@ def main():
 
     recognizer = sr.Recognizer()
     microphone = sr.Microphone()
-    recognizer.energy_threshold = 300
     
-    print("\n--- NearHelp Voice Assistant Active ---")
+    print("Calibrating microphone for ambient noise... Please wait.")
+    try:
+        with microphone as source:
+            recognizer.adjust_for_ambient_noise(source, duration=1.5)
+        print(f"Calibration complete. Dynamic energy threshold: {recognizer.energy_threshold:.0f}")
+    except Exception as e:
+        print(f"Ambient noise calibration failed: {e}. Using default threshold (300).")
+        recognizer.energy_threshold = 300
+    
+    print("\n--- NearHelp Voice Assistant Active (Listening...) ---")
     
     while True:
         try:
@@ -293,9 +301,9 @@ def main():
                         trigger_sos(category, reason, confidence, urgency)
                         
             except sr.UnknownValueError:
-                pass
-            except sr.RequestError:
-                pass
+                print("?", end="", flush=True)
+            except sr.RequestError as e:
+                print(f"\n[Mic Error] Speech Recognition service error: {e}")
                 
         except sr.WaitTimeoutError:
             pass
