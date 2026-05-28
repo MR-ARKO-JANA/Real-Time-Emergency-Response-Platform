@@ -68,7 +68,7 @@ def trigger_sos(phrase_detected):
 
 def main():
     try:
-        sio.connect(SERVER_URL, transports=['websocket'])
+        sio.connect(SERVER_URL)
         print("\n--- NearHelp Voice Assistant TEST MODE ---")
         print("Waiting 5 seconds before simulated trigger...")
         time.sleep(5)

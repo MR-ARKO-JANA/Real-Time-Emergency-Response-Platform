@@ -17,6 +17,7 @@ SERVER_URL = os.getenv("SERVER_URL", "https://nearhelp-service-127178207448.us-c
 # ── Emergency Keywords (mapped to categories) ──
 MEDICAL_KEYWORDS = [
     "medical", "doctor", "ambulance", "hospital", "heart", "breathing",
+    "breathe", "breath", "pain",
     "bleeding", "wound", "choking", "poison", "seizure", "stroke",
     "collapsed", "unconscious", "chest pain", "not breathing", "faint"
 ]
@@ -258,7 +259,7 @@ def _categorize_text(text):
 
 def main():
     try:
-        sio.connect(SERVER_URL, transports=['websocket'])
+        sio.connect(SERVER_URL)
     except:
         print("Waiting for server...")
 
@@ -279,7 +280,7 @@ def main():
     while True:
         try:
             if not sio.connected:
-                try: sio.connect(SERVER_URL, transports=['websocket'])
+                try: sio.connect(SERVER_URL)
                 except: pass
 
             with microphone as source:
