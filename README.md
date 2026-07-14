@@ -110,3 +110,6 @@ docker-compose up -d
 ---
 
 **Built for emergency response and community safety**
+
+## Deployment
+This platform is deployed on [Render](https://render.com).
