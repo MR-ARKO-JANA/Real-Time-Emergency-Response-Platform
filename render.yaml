@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: emergency-response-platform
+    env: node
+    plan: free
+    branch: main
