@@ -2,7 +2,7 @@
 
 A full-stack emergency response system that connects people in crisis with nearby responders using real-time geolocation, AI-powered guidance, and WebSocket communication.
 
-![NearHelp Application Screenshot](./public/dashboard.png)
+![NearHelp Application Screenshot](./public/nearhelp.png)
 
 ## 🚀 Features
 
