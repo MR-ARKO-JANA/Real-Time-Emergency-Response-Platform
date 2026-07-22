@@ -2,6 +2,8 @@
 
 A full-stack emergency response system that connects people in crisis with nearby responders using real-time geolocation, AI-powered guidance, and WebSocket communication.
 
+![NearHelp Application Screenshot](./public/dashboard.png)
+
 ## 🚀 Features
 
 - **Real-Time SOS Broadcasting**: Instant emergency alerts with geospatial radius matching
