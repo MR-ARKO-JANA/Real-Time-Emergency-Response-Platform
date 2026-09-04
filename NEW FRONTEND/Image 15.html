@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;600;700&amp;family=Space+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "secondary-fixed": "#d8e2ff", "on-primary-container": "#5b0017", "on-primary": "#67001b", "surface-tint": "#ffb2b7", "on-background": "#e2e2e8", "on-secondary-container": "#e6ecff", "on-tertiary-fixed": "#001f26", "on-secondary-fixed": "#001a42", "error": "#ffb4ab", "on-tertiary-container": "#002f38", "secondary-fixed-dim": "#adc6ff", "surface-container-lowest": "#0c0e12", "on-error-container": "#ffdad6", "inverse-primary": "#bc0b3b", "surface-container-highest": "#333539", "on-surface-variant": "#e3bdbf", "error-container": "#93000a", "surface-bright": "#37393e", "surface-variant": "#333539", "on-secondary": "#002e6a", "secondary-container": "#0566d9", "tertiary-fixed-dim": "#4cd7f6", "on-primary-fixed-variant": "#92002a", "on-secondary-fixed-variant": "#004395", "on-tertiary-fixed-variant": "#004e5c", "surface": "#111317", "surface-container-low": "#1a1c20", "surface-dim": "#111317", "tertiary-fixed": "#acedff", "primary-container": "#ff516a", "on-primary-fixed": "#40000d", "outline-variant": "#5b4041", "background": "#111317", "tertiary": "#4cd7f6", "on-error": "#690005", "on-surface": "#e2e2e8", "on-tertiary": "#003640", "outline": "#aa888a", "surface-container-high": "#282a2e", "primary": "#ffb2b7", "primary-fixed-dim": "#ffb2b7", "surface-container": "#1e2024", "inverse-surface": "#e2e2e8", "primary-fixed": "#ffdadb", "tertiary-container": "#009eb9", "secondary": "#adc6ff", "inverse-on-surface": "#2f3035" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "unit-sm": "0.75rem", "unit-2xl": "3rem", "margin-desktop": "2rem", "unit-xs": "0.5rem", "unit-lg": "1.5rem", "unit-md": "1rem", "unit-xl": "2rem", "margin-mobile": "1rem", "gutter-hud": "1.25rem", "unit-2xs": "0.25rem" }, "fontFamily": { "label-caps": [ "Inter" ], "body-bold": [ "Inter" ], "telemetry-coord": [ "JetBrains Mono" ], "telemetry-time": [ "JetBrains Mono" ], "telemetry-stat": [ "JetBrains Mono" ], "body-base": [ "Inter" ], "headline-sm": [ "Space Grotesk" ], "display-lg-mobile": [ "Space Grotesk" ], "caption": [ "Inter" ], "display-lg": [ "Space Grotesk" ], "headline-md": [ "Space Grotesk" ] }, "fontSize": { "label-caps": [ "11px", { "lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "700" } ], "body-bold": [ "15px", { "lineHeight": "22px", "fontWeight": "600" } ], "telemetry-coord": [ "13px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "500" } ], "telemetry-time": [ "14px", { "lineHeight": "18px", "letterSpacing": "-0.01em", "fontWeight": "600" } ], "telemetry-stat": [ "28px", { "lineHeight": "32px", "letterSpacing": "-0.03em", "fontWeight": "700" } ], "body-base": [ "15px", { "lineHeight": "22px", "fontWeight": "400" } ], "headline-sm": [ "18px", { "lineHeight": "24px", "letterSpacing": "-0.005em", "fontWeight": "600" } ], "display-lg-mobile": [ "26px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "caption": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" } ], "display-lg": [ "32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "headline-md": [ "24px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600" } ] } } } };</script></head><body class="bg-background font-body-base text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 w-full z-50 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.4)]"><div class="h-16 w-full px-margin-desktop flex items-center justify-between gap-unit-md"><div class="flex items-center gap-unit-md"><img alt="Brand logo. - Primary color: #f43f5e
+- Font: spaceGrotesk
+- Mode: dark
+- Roundness: rounded-sm
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1V_tpcA87qQayscuHMOcfvv4k4Q9nwb7VWNOEoFmPGq3I2jL6lpVQhlTDtFVFYw4v4HkLICcQl7nrJCyfL2RHT6QnCcJvtlEURWpFt2fu2Aiw7gOEJUbJz-LciIMeW71GbnWviOM_xXq0pmMG2Ad_Vd0mbRmQ4_1WF6eJ6THhoypj7YiMMme0651vuK5IiuyYjZzr7uW8hM7WZ7K4W5lI26jqyZPzXxK1poNu2P0v8k9XqmjQ6nJqMDimPf"/><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight">NearHelp</span><div class="flex items-center gap-unit-2xs px-unit-xs py-unit-2xs rounded-DEFAULT bg-primary-container text-on-primary-container font-label-caps text-label-caps uppercase"><span class="w-2 h-2 rounded-full bg-on-primary-container animate-ping"></span><span class="">LIVE 1KM</span></div></div><nav class="hidden xl:flex items-center gap-unit-lg" data-active-classes="text-primary font-bold"><a class="text-on-surface-variant hover:text-on-surface font-body-bold text-caption uppercase tracking-wider transition-colors" data-path="sos-alert" href="#">SOS Alert</a>
+<a class="text-primary font-bold text-caption uppercase tracking-wider transition-colors flex items-center gap-1" data-path="live-tracking" href="#">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+  Live Tracking
+</a>
+<a class="text-on-surface-variant hover:text-on-surface font-body-bold text-caption uppercase tracking-wider transition-colors" data-path="safe-shelters" href="#">Safe Shelters</a>
+<a class="text-on-surface-variant hover:text-on-surface font-body-bold text-caption uppercase tracking-wider transition-colors" data-path="first-aid" href="#">First Aid</a></nav><div class="flex items-center gap-unit-md"><div class="flex items-center bg-surface-container p-unit-2xs rounded-DEFAULT"><button class="px-unit-xs py-unit-2xs rounded-DEFAULT bg-surface-bright text-on-surface font-label-caps text-label-caps uppercase">Citizen</button><button class="px-unit-xs py-unit-2xs rounded-DEFAULT text-on-surface-variant hover:text-on-surface font-label-caps text-label-caps uppercase transition-colors">Responder</button></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-surface min-h-screen pb-12"><div class="flex flex-col w-full relative min-h-[calc(100vh-7rem)] overflow-hidden">
+<!-- Interactive Geospatial Vector Layer / Simulated Dark HUD Map -->
+<div class="absolute inset-0 z-0 bg-surface-container-lowest overflow-hidden select-none">
+<!-- Map Canvas with Static API Anchor -->
+<div class="absolute inset-0 w-full h-full bg-cover bg-center opacity-35 scale-105 filter contrast-125 brightness-75" data-location="Financial District, San Francisco, CA" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCy0bkpH5NA52E8jiMmz0gv49_DuG4I7g6e3h_uuzB3iRfzy6H25zxWcGAR7xv27YSZGy2_9dSBX1c_d392I-Ytp3jJQr_sKkvD9FnuYvUeEWN58WbFZAV_8Oy6wbWUrqYoPgyqwEq6zYKIWEg2yehtXRXEnmDRoRpdB76srM8bSOrHmogyooWGU7PoH3ArB2CCTPcwgFHUuafLoUywXq-vaejWnWvig-ac2Gvg0QnXVV4yXHT6FNmi7Q')"></div>
+<!-- Dark Tactical Mesh Graticule & Ambient Tactical Vignette -->
+<div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-surface/90 backdrop-blur-[2px]"></div>
+<!-- Geospatial Routing Vector Overlay (SVG Path & Radars) -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<lineargradient id="routeGradient" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#4cd7f6" stop-opacity="0.9"></stop>
+<stop offset="50%" stop-color="#ff516a" stop-opacity="0.85"></stop>
+<stop offset="100%" stop-color="#ffb2b7" stop-opacity="0.95"></stop>
+</lineargradient>
+<radialgradient cx="50%" cy="50%" id="beaconPulse" r="50%">
+<stop offset="0%" stop-color="#ff516a" stop-opacity="0.7"></stop>
+<stop offset="60%" stop-color="#ff516a" stop-opacity="0.2"></stop>
+<stop offset="100%" stop-color="#ff516a" stop-opacity="0"></stop>
+</radialgradient>
+</defs>
+<!-- Tactical GPS Grid Reference Lines -->
+<path d="M 0,220 L 1920,220 M 0,580 L 1920,580 M 340,0 L 340,1080 M 1180,0 L 1180,1080" stroke="rgba(255,255,255,0.04)" stroke-dasharray="6 8" stroke-width="1"></path>
+<!-- Breadcrumb Rapid Route Path -->
+<path d="M 280,310 C 380,360 480,290 620,410 C 720,490 810,470 940,540 C 1040,600 1140,560 1260,650" fill="none" stroke="rgba(255,81,106,0.18)" stroke-linecap="round" stroke-width="14"></path>
+<path class="animate-pulse" d="M 280,310 C 380,360 480,290 620,410 C 720,490 810,470 940,540 C 1040,600 1140,560 1260,650" fill="none" stroke="url(#routeGradient)" stroke-dasharray="9 5" stroke-linecap="round" stroke-width="3.5"></path>
+<!-- Citizen SOS Origin Radar Waves -->
+<circle class="animate-ping" cx="1260" cy="650" fill="url(#beaconPulse)" r="48" style="animation-duration: 2.8s;"></circle>
+<circle class="opacity-90 shadow-2xl" cx="1260" cy="650" fill="#ff516a" r="18"></circle>
+<circle cx="1260" cy="650" fill="#ffffff" r="6"></circle>
+<!-- Responder Unit 04 Vector Puck Position -->
+<circle class="animate-pulse" cx="620" cy="410" fill="#4cd7f6" fill-opacity="0.18" r="28"></circle>
+<circle cx="620" cy="410" fill="#002f38" r="14" stroke="#4cd7f6" stroke-width="2.5"></circle>
+<circle cx="620" cy="410" fill="#4cd7f6" r="4"></circle>
+</svg>
+<!-- Geographic HUD HUD Corner Markers -->
+<div class="absolute top-6 left-8 flex flex-col gap-unit-2xs pointer-events-none font-telemetry-coord text-telemetry-coord text-on-surface-variant/70"><div class="flex items-center gap-unit-xs"><span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span><span class="font-body-bold text-caption text-on-surface">Financial District, San Francisco</span></div></div>
+</div>
+<!-- Primary Incident Command & Citizen Assistance Overlay Layer -->
+<div class="relative z-10 w-full max-w-5xl mx-auto px-unit-md sm:px-margin-desktop py-unit-md flex flex-col items-center">
+<!-- TOP TELEMETRY STATUS PILL -->
+<div class="w-full max-w-xl mb-unit-sm flex items-center justify-between px-unit-md py-unit-xs rounded-full bg-surface-container-low/90 backdrop-blur-xl shadow-lg"><div class="flex items-center gap-unit-xs"><span class="relative flex h-2.5 w-2.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-tertiary"></span></span><span class="font-label-caps text-label-caps uppercase tracking-wider text-on-surface">Location Synced • Live Updates</span></div><div class="flex items-center gap-unit-2xs text-on-surface-variant font-label-caps text-label-caps uppercase"><span class="material-symbols-outlined text-[14px] text-tertiary" style="font-variation-settings: 'FILL' 1;">verified_user</span><span class="">Emergency Channel Protected</span></div></div>
+<!-- MAIN ACTIVE SOS COMMAND CARD -->
+<div class="w-full max-w-xl bg-surface-container/90 backdrop-blur-2xl rounded-xl shadow-2xl p-unit-lg flex flex-col gap-unit-lg"><!-- 1. REASSURING STATUS BADGE & ETA -->
+<div class="relative overflow-hidden rounded-xl bg-surface-container-high p-unit-md border border-tertiary/20 flex flex-col sm:flex-row sm:items-center justify-between gap-unit-sm">
+<div class="flex items-center gap-unit-md">
+<div class="relative flex items-center justify-center w-12 h-12 rounded-xl bg-tertiary/20 text-tertiary flex-shrink-0">
+<span class="material-symbols-outlined text-[28px] animate-pulse">health_and_safety</span>
+<span class="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-tertiary"></span>
+</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-unit-xs">
+<span class="px-2 py-0.5 rounded-full bg-tertiary/20 text-tertiary font-label-caps text-label-caps tracking-wider uppercase font-bold flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-ping"></span>
+          HELP IS ON THE WAY
+        </span>
+</div>
+<p class="font-body-bold text-headline-sm text-on-surface mt-1">Stay where you are</p>
+<p class="font-caption text-caption text-on-surface-variant">Dispatch and responder have your GPS lock</p>
+</div>
+</div>
+<div class="flex flex-col sm:items-end justify-center bg-surface-container-lowest/80 px-unit-md py-unit-xs rounded-lg border border-surface-bright flex-shrink-0">
+<span class="font-label-caps text-label-caps uppercase text-on-surface-variant font-bold">Estimated Arrival</span>
+<span class="font-telemetry-stat text-[26px] text-tertiary font-bold tracking-tight">~3 MINS</span>
+<span class="font-caption text-caption text-on-surface-variant">0.6 miles away</span>
+</div>
+</div>
+<!-- 2. RESPONDER PROFILE CARD -->
+<div class="rounded-xl bg-surface-container-low p-unit-md border border-surface-bright flex flex-col gap-unit-md">
+<div class="flex items-start sm:items-center justify-between flex-wrap gap-unit-sm">
+<div class="flex items-center gap-unit-md">
+<div class="relative w-14 h-14 rounded-xl overflow-hidden bg-surface-bright flex-shrink-0 ring-2 ring-tertiary/40">
+<img class="w-full h-full object-cover" data-alt="Officer Sarah Jenkins, Certified Paramedic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1vYa7G4ogpVJdNJ3Im041GrZ0ZakN2wv1c3wx_NZcVb8QDl8DFit5INWWJEVrb3_B9g1dEwAd5lJXpTF6PKrrYuWjxSS_BV2Yiy0sNwI-u__q3W7P_E0-CdVIfLzvS5jfsG3XdFL-Rf2YCkP9SErZkIPmJtJfVecLkSE6aTJ-qI_ci-L7s4TlzsMJPAgWIxM1YzVine4YBl14N55_LhF_y7TO-JlZt4EgRAYg9qiP47KoQH29_uEXpQ"/>
+<div class="absolute bottom-0 right-0 p-1 bg-secondary-container text-on-secondary-container rounded-tl">
+<span class="material-symbols-outlined text-[12px] block">medical_services</span>
+</div>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-unit-xs flex-wrap">
+<h3 class="font-body-bold text-[16px] text-on-surface">Officer Sarah Jenkins</h3>
+<span class="inline-flex items-center gap-0.5 text-[#facc15] text-[12px] font-bold bg-surface-container px-1.5 py-0.5 rounded">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+            4.9
+          </span>
+</div>
+<p class="font-caption text-caption text-on-surface-variant font-medium">Certified Paramedic • Unit Medic-04</p>
+<p class="font-caption text-caption text-secondary flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[14px]">directions_car</span>
+          Toyota RAV4 - Silver <span class="text-on-surface-variant font-telemetry-coord">(Plate #7XYZ89)</span>
+</p>
+</div>
+</div>
+<div class="flex items-center gap-1.5 bg-surface-container px-unit-sm py-unit-xs rounded-lg">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+<span class="font-caption text-caption text-on-surface font-medium">Approaching Rapidly</span>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-unit-xs">
+<button class="h-12 px-unit-md rounded-lg bg-secondary-container hover:bg-secondary-container/90 text-white font-body-bold text-[14px] transition-colors flex items-center justify-center gap-unit-xs shadow-md" id="callBtn">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">call</span>
+<span>Call Helper</span>
+</button>
+<button class="h-12 px-unit-md rounded-lg bg-surface-bright hover:bg-surface-container-highest text-on-surface font-body-bold text-[14px] transition-colors flex items-center justify-center gap-unit-xs border border-surface-container-high" id="audioBtn">
+<span class="material-symbols-outlined text-[20px] text-secondary">chat</span>
+<span>Send Message / Instructions</span>
+</button>
+</div>
+</div>
+<!-- 3. 4-STEP PROGRESS TRACKER -->
+<div class="bg-surface-container-low/80 rounded-xl p-unit-md border border-surface-bright flex flex-col gap-unit-md">
+<div class="flex items-center justify-between pb-unit-2xs border-b border-surface-bright">
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant font-bold">Emergency Live Progress</span>
+<span class="font-telemetry-coord text-caption text-tertiary flex items-center gap-unit-2xs font-bold">
+<span class="inline-block w-2 h-2 rounded-full bg-tertiary animate-ping"></span>
+      Active Response
+    </span>
+</div>
+<div class="flex flex-col gap-unit-sm">
+<!-- Step 1 Done -->
+<div class="flex items-start gap-unit-md">
+<div class="flex flex-col items-center">
+<div class="w-7 h-7 rounded-full bg-tertiary/20 text-tertiary flex items-center justify-center ring-2 ring-tertiary/50">
+<span class="material-symbols-outlined text-[16px] font-bold">check</span>
+</div>
+<div class="w-0.5 h-6 bg-tertiary/70 my-1"></div>
+</div>
+<div class="flex-1 flex items-center justify-between pt-0.5">
+<div>
+<p class="font-body-bold text-caption text-on-surface">Emergency alert broadcasted</p>
+<p class="font-caption text-caption text-on-surface-variant">Dispatch and nearby units alerted</p>
+</div>
+<span class="font-telemetry-time text-caption text-on-surface-variant">01:15 pm</span>
+</div>
+</div>
+<!-- Step 2 Done -->
+<div class="flex items-start gap-unit-md">
+<div class="flex flex-col items-center">
+<div class="w-7 h-7 rounded-full bg-tertiary/20 text-tertiary flex items-center justify-center ring-2 ring-tertiary/50">
+<span class="material-symbols-outlined text-[16px] font-bold">check</span>
+</div>
+<div class="w-0.5 h-6 bg-tertiary/70 my-1"></div>
+</div>
+<div class="flex-1 flex items-center justify-between pt-0.5">
+<div>
+<p class="font-body-bold text-caption text-on-surface">Responder accepted &amp; en route</p>
+<p class="font-caption text-caption text-on-surface-variant">Medic-04 Sarah Jenkins confirmed assignment</p>
+</div>
+<span class="font-telemetry-time text-caption text-on-surface-variant">01:16 pm</span>
+</div>
+</div>
+<!-- Step 3 In Progress -->
+<div class="flex items-start gap-unit-md">
+<div class="flex flex-col items-center">
+<div class="relative flex items-center justify-center w-7 h-7 rounded-full bg-primary-container text-on-primary-container ring-4 ring-primary-container/30">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-container opacity-75"></span>
+<span class="material-symbols-outlined text-[16px] animate-spin" style="animation-duration: 4s;">navigation</span>
+</div>
+<div class="w-0.5 h-6 bg-surface-bright my-1"></div>
+</div>
+<div class="flex-1 flex items-center justify-between pt-0.5">
+<div>
+<p class="font-body-bold text-caption text-primary flex items-center gap-1.5">
+<span>Driving to your location</span>
+<span class="px-1.5 py-0.2 rounded bg-primary-container/20 text-primary text-[11px] font-bold uppercase">In Progress</span>
+</p>
+<p class="font-caption text-caption text-on-surface font-medium">ETA ~3 mins (0.6 miles away)</p>
+</div>
+<span class="font-telemetry-time text-caption text-primary font-bold animate-pulse">LIVE</span>
+</div>
+</div>
+<!-- Step 4 Upcoming -->
+<div class="flex items-start gap-unit-md opacity-45">
+<div class="flex flex-col items-center">
+<div class="w-7 h-7 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]">location_on</span>
+</div>
+</div>
+<div class="flex-1 flex items-center justify-between pt-0.5">
+<div>
+<p class="font-body-bold text-caption text-on-surface">Arrived at your location</p>
+<p class="font-caption text-caption text-on-surface-variant">Immediate assistance at your coordinates</p>
+</div>
+<span class="font-telemetry-time text-caption text-on-surface-variant">Upcoming</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 4. QUICK NOTE INPUT -->
+<div class="rounded-xl bg-surface-container-lowest p-unit-sm border border-surface-bright flex flex-col gap-unit-2xs">
+<div class="flex items-center justify-between">
+<label class="font-label-caps text-label-caps uppercase text-on-surface-variant flex items-center gap-unit-2xs font-bold" for="roomNotes">
+<span class="material-symbols-outlined text-[16px] text-tertiary">edit_note</span>
+<span>Add quick note for responder</span>
+</label>
+<span class="font-caption text-caption text-tertiary opacity-0 transition-opacity" id="savedIndicator">Note Saved</span>
+</div>
+<div class="flex items-center gap-unit-xs">
+<input class="w-full bg-surface-container-high text-on-surface text-caption font-body-base px-unit-sm py-unit-xs rounded-lg border border-surface-bright focus:outline-none focus:ring-1 focus:ring-tertiary" id="roomNotes" placeholder="e.g. Building gate code #402, apt 3B, red jacket" type="text" value="Building gate code #402, apt 3B, wearing red jacket"/>
+<button class="px-unit-md py-unit-xs bg-surface-bright hover:bg-surface-container-highest text-on-surface text-caption font-body-bold rounded-lg transition-colors whitespace-nowrap" id="updateNoteBtn">Save</button>
+</div>
+</div>
+<!-- 5. ACTION ROW AT BOTTOM -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-unit-xs pt-unit-2xs">
+<button class="h-12 px-unit-md rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface transition-colors flex items-center justify-center gap-unit-xs font-body-bold text-[14px] border border-surface-bright" id="shareTrackingBtn">
+<span class="material-symbols-outlined text-[20px] text-secondary">share</span>
+<span>Share Live Tracking Link</span>
+</button>
+<button class="h-12 px-unit-md rounded-lg bg-error-container/10 hover:bg-error-container/20 text-error transition-colors flex items-center justify-center gap-unit-xs font-body-bold text-[14px] border border-error-container/30" id="cancelModalTrigger">
+<span class="material-symbols-outlined text-[20px]">cancel</span>
+<span>Cancel Request (False Alarm)</span>
+</button>
+</div></div>
+<!-- TACTICAL SECONDARY INFO STRIP -->
+<div class="w-full max-w-xl mt-unit-sm grid grid-cols-3 gap-unit-xs text-center"><div class="bg-surface-container/60 backdrop-blur rounded p-unit-xs flex items-center justify-center gap-unit-xs col-span-1"><span class="material-symbols-outlined text-tertiary text-[18px]">battery_charging_full</span><div class="flex flex-col text-left"><span class="font-label-caps text-label-caps uppercase text-on-surface-variant">Battery</span><span class="font-telemetry-coord text-caption text-on-surface">84%</span></div></div><div class="bg-surface-container/60 backdrop-blur rounded p-unit-xs flex items-center justify-center gap-unit-xs col-span-2"><span class="material-symbols-outlined text-tertiary text-[18px]">check_circle</span><div class="flex flex-col text-left"><span class="font-label-caps text-label-caps uppercase text-on-surface-variant">Connection</span><span class="font-telemetry-coord text-caption text-tertiary">Direct Connection Active</span></div></div></div>
+</div>
+<!-- CANCELLATION CONFIRMATION MODAL OVERLAY (Hidden by default) -->
+<div class="fixed inset-0 z-50 bg-surface-container-lowest/80 backdrop-blur-md flex items-center justify-center p-unit-md hidden" id="cancelModal">
+<div class="w-full max-w-md bg-surface-container rounded-xl p-unit-lg shadow-2xl flex flex-col gap-unit-md animate-in fade-in zoom-in duration-150">
+<div class="flex items-center gap-unit-sm text-error">
+<span class="material-symbols-outlined text-[28px]">warning</span>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Confirm SOS Cancellation</h4>
+</div>
+<p class="font-body-base text-caption text-on-surface-variant">
+        Unit 04 has already been dispatched to your current coordinates. Please confirm this was a false alarm or that immediate physical assistance is no longer required.
+      </p>
+<div class="flex flex-col gap-unit-xs pt-unit-xs">
+<button class="w-full h-11 rounded bg-error-container text-on-error-container font-body-bold text-caption hover:opacity-90 transition-opacity" id="confirmCancelBtn">
+          Yes, Cancel Emergency Broadcast
+        </button>
+<button class="w-full h-11 rounded bg-surface-bright text-on-surface font-body-bold text-caption hover:bg-surface-container-highest transition-colors" id="dismissModalBtn">
+          Keep Active Assistance
+        </button>
+</div>
+</div>
+</div>
+<!-- TOAST NOTIFICATION SNACKBAR -->
+<div class="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-unit-md py-unit-xs rounded-full bg-tertiary text-on-tertiary font-body-bold text-caption shadow-2xl opacity-0 pointer-events-none transition-all duration-300 transform -translate-y-2" id="toastNotification">
+    Tracking link copied to clipboard
+  </div>
+</div>
+<script>
+  (function() {
+    // Note updating interaction
+    const updateNoteBtn = document.getElementById('updateNoteBtn');
+    const savedIndicator = document.getElementById('savedIndicator');
+    if (updateNoteBtn && savedIndicator) {
+      updateNoteBtn.addEventListener('click', function() {
+        savedIndicator.classList.remove('opacity-0');
+        setTimeout(() => {
+          savedIndicator.classList.add('opacity-0');
+        }, 2200);
+      });
+    }
+
+    // Share Live Tracking interaction
+    const shareBtn = document.getElementById('shareTrackingBtn');
+    const toast = document.getElementById('toastNotification');
+    if (shareBtn && toast) {
+      shareBtn.addEventListener('click', function() {
+        toast.classList.remove('opacity-0', '-translate-y-2');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        setTimeout(() => {
+          toast.classList.remove('opacity-100', 'translate-y-0');
+          toast.classList.add('opacity-0', '-translate-y-2');
+        }, 2600);
+      });
+    }
+
+    // Direct Responder Call trigger
+    const callBtn = document.getElementById('callBtn');
+    if (callBtn && toast) {
+      callBtn.addEventListener('click', function() {
+        toast.textContent = 'Connecting priority channel to Unit 04...';
+        toast.classList.remove('opacity-0', '-translate-y-2');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        setTimeout(() => {
+          toast.classList.remove('opacity-100', 'translate-y-0');
+          toast.classList.add('opacity-0', '-translate-y-2');
+          toast.textContent = 'Tracking link copied to clipboard';
+        }, 2600);
+      });
+    }
+
+    // Audio channel toggle trigger
+    const audioBtn = document.getElementById('audioBtn');
+    if (audioBtn) {
+      let isTransmitting = false;
+      audioBtn.addEventListener('click', function() {
+        isTransmitting = !isTransmitting;
+        if (isTransmitting) {
+          audioBtn.classList.remove('bg-secondary-container/20', 'text-secondary');
+          audioBtn.classList.add('bg-primary-container', 'text-on-primary-container', 'animate-pulse');
+          audioBtn.querySelector('span:last-child').textContent = 'Channel Open (Mute)';
+        } else {
+          audioBtn.classList.remove('bg-primary-container', 'text-on-primary-container', 'animate-pulse');
+          audioBtn.classList.add('bg-secondary-container/20', 'text-secondary');
+          audioBtn.querySelector('span:last-child').textContent = 'Live Audio Channel';
+        }
+      });
+    }
+
+    // Cancel SOS Modal interaction
+    const cancelModalTrigger = document.getElementById('cancelModalTrigger');
+    const cancelModal = document.getElementById('cancelModal');
+    const dismissModalBtn = document.getElementById('dismissModalBtn');
+    const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+
+    if (cancelModalTrigger && cancelModal && dismissModalBtn && confirmCancelBtn) {
+      cancelModalTrigger.addEventListener('click', function() {
+        cancelModal.classList.remove('hidden');
+      });
+      dismissModalBtn.addEventListener('click', function() {
+        cancelModal.classList.add('hidden');
+      });
+      confirmCancelBtn.addEventListener('click', function() {
+        cancelModal.classList.add('hidden');
+        if (toast) {
+          toast.textContent = 'SOS Canceled. Central dispatch notified.';
+          toast.classList.remove('opacity-0', '-translate-y-2');
+          toast.classList.add('opacity-100', 'translate-y-0');
+          setTimeout(() => {
+            toast.classList.remove('opacity-100', 'translate-y-0');
+            toast.classList.add('opacity-0', '-translate-y-2');
+          }, 3000);
+        }
+      });
+    }
+  })();
+</script></main><footer class="fixed bottom-0 w-full z-40 bg-surface/90 backdrop-blur-xl shadow-[0_-1px_8px_rgba(0,0,0,0.4)]"><div class="h-12 w-full px-margin-desktop flex items-center justify-between font-telemetry-coord text-telemetry-coord"><div class="flex items-center gap-unit-lg"><div class="flex items-center gap-unit-2xs text-tertiary"><span class="material-symbols-outlined text-[16px]">my_location</span><span class="font-label-caps text-label-caps uppercase text-on-surface-variant">GPS ACCURACY:</span><span class="font-telemetry-time text-telemetry-time text-on-surface">±1.4M OPTIMAL</span></div><div class="hidden sm:flex items-center gap-unit-2xs text-secondary"><span class="material-symbols-outlined text-[16px]">emergency</span><span class="font-label-caps text-label-caps uppercase text-on-surface-variant">ACTIVE UNITS IN 1KM:</span><span class="font-telemetry-time text-telemetry-time text-on-surface">8 RESPONDERS</span></div></div><div class="flex items-center gap-unit-md"><div class="flex items-center gap-unit-2xs"><span class="w-2 h-2 rounded-full bg-tertiary"></span><span class="font-label-caps text-label-caps uppercase text-on-surface-variant">TELEMETRY LIVE</span></div></div></div></footer>
+</body></html>

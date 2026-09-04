@@ -1,0 +1,192 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>NearHelp - Real-Time Emergency Response Platform</title>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Custom Configuration -->
+<script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            sos: {
+              400: '#f87171',
+              500: '#ef4444',
+              600: '#dc2626',
+              700: '#b91c1c'
+            }
+          },
+          animation: {
+            'radar-pulse': 'radar 3s cubic-bezier(0, 0, 0.2, 1) infinite',
+            'radar-pulse-delayed': 'radar 3s cubic-bezier(0, 0, 0.2, 1) 1.5s infinite',
+            'subtle-pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'mic-glow': 'glow 1.8s ease-in-out infinite alternate'
+          },
+          keyframes: {
+            radar: {
+              '0%': { transform: 'scale(0.8)', opacity: '0.9' },
+              '100%': { transform: 'scale(2.2)', opacity: '0' }
+            },
+            glow: {
+              '0%': { boxShadow: '0 0 5px rgba(239, 68, 68, 0.3)' },
+              '100%': { boxShadow: '0 0 16px rgba(239, 68, 68, 0.8)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+<!-- Custom Styles for Satellite Canvas and Glassmorphism -->
+<style data-purpose="custom-map-and-ui">
+    /* Satellite Grid Simulation Overlay */
+    .satellite-bg {
+      background-color: #0d171c;
+      background-image: 
+        radial-gradient(at 30% 20%, rgba(34, 197, 94, 0.08) 0px, transparent 50%),
+        radial-gradient(at 75% 70%, rgba(14, 165, 233, 0.1) 0px, transparent 55%),
+        linear-gradient(rgba(10, 18, 22, 0.65), rgba(8, 14, 18, 0.82)),
+        radial-gradient(#1f2937 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 100% 100%, 28px 28px;
+    }
+
+    /* Radar ring effect */
+    .radar-ring {
+      position: absolute;
+      border: 1.5px solid rgba(239, 68, 68, 0.5);
+      border-radius: 9999px;
+      pointer-events: none;
+    }
+
+    /* Range Circle */
+    .coverage-circle {
+      border: 1px dashed rgba(239, 68, 68, 0.4);
+      background: radial-gradient(circle, rgba(239, 68, 68, 0.06) 0%, rgba(239, 68, 68, 0.01) 70%, transparent 100%);
+    }
+
+    /* Custom Glass Panel */
+    .dark-glass {
+      background: rgba(18, 24, 33, 0.82);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen w-screen overflow-hidden select-none font-sans antialiased relative">
+<!-- BEGIN: MainHeader -->
+<header class="fixed top-0 inset-x-0 z-40 px-4 sm:px-6 py-3.5 flex items-center justify-between dark-glass border-b border-white/10 shadow-xl" data-purpose="top-navigation-bar"><div class="flex items-center gap-6"><div class="flex items-center gap-2.5"><div class="flex items-center justify-center w-8 h-8 rounded-lg bg-red-600/20 border border-red-500/40 text-red-500 shadow-md"><svg class="w-5 h-5 text-red-500 animate-pulse" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path><circle cx="12" cy="12" r="4"></circle></svg></div><h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-1">Near<span class="text-red-500">Help</span></h1></div><nav class="hidden md:flex items-center gap-1.5 text-xs font-medium"><button type="button" class="px-3 py-1.5 rounded-full bg-red-600 text-white font-semibold shadow-sm">Get Help</button><button type="button" class="px-3 py-1.5 rounded-full text-slate-300 hover:text-white hover:bg-slate-800/80 transition">Track Help</button><button type="button" class="px-3 py-1.5 rounded-full text-slate-300 hover:text-white hover:bg-slate-800/80 transition">Safe Shelters</button><button type="button" class="px-3 py-1.5 rounded-full text-slate-300 hover:text-white hover:bg-slate-800/80 transition">First Aid</button></nav></div><div class="flex items-center gap-3"><div class="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/90 border border-white/10 text-xs text-slate-300"><span class="w-2 h-2 rounded-full bg-emerald-400"></span><span class="font-medium text-slate-200">Citizen Mode</span></div><div class="w-8 h-8 rounded-full bg-gradient-to-tr from-pink-600 to-rose-500 text-white flex items-center justify-center font-bold text-xs ring-2 ring-white/20 shadow-md" title="Account Profile">A</div></div></header>
+<!-- END: MainHeader -->
+<!-- BEGIN: InteractiveMapCanvas -->
+<!-- Simulated Aerial / Satellite Background with Simulated Neighborhood and Waterways -->
+<main class="relative w-screen h-screen overflow-hidden satellite-bg" data-purpose="geospatial-satellite-map">
+<!-- Vector Map Landscape Overlay simulation -->
+<svg class="absolute inset-0 w-full h-full opacity-35 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<pattern height="120" id="city-grid" patternUnits="userSpaceOnUse" width="120">
+<path d="M 120 0 L 0 0 0 120" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1.2"></path>
+<path d="M 30 30 L 90 30 90 90 30 90 Z" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"></path>
+<circle cx="60" cy="60" fill="rgba(255,255,255,0.1)" r="1.5"></circle>
+</pattern>
+</defs>
+<rect fill="url(#city-grid)" height="100%" width="100%"></rect>
+<!-- Simulated River/Coastline Path -->
+<path d="M-100,550 C300,580 500,450 780,620 C1050,780 1300,500 1600,680 L1600,1000 L-100,1000 Z" fill="rgba(14, 45, 60, 0.45)"></path>
+<!-- Highway arterial lines -->
+<path d="M0,220 C400,240 800,290 1600,320" fill="none" stroke="rgba(234, 179, 8, 0.2)" stroke-dasharray="6,4" stroke-width="2"></path>
+<path d="M420,0 C450,400 520,700 550,1100" fill="none" stroke="rgba(255, 255, 255, 0.15)" stroke-width="2.5"></path>
+</svg>
+<!-- Geographic Location Labels (similar to Satellite Map) -->
+
+<!-- Active Responder Pins on Map -->
+<div class="absolute top-1/3 left-1/4 pointer-events-none flex flex-col items-center">
+<span class="w-3.5 h-3.5 rounded-full bg-emerald-500 ring-4 ring-emerald-500/20 shadow-lg animate-pulse"></span>
+<span class="mt-1 text-[9px] px-1.5 py-0.5 rounded bg-slate-900/80 text-emerald-300 border border-emerald-500/30">Medic 0.4km</span>
+</div>
+<div class="absolute bottom-1/3 right-1/4 pointer-events-none flex flex-col items-center">
+<span class="w-3.5 h-3.5 rounded-full bg-blue-500 ring-4 ring-blue-500/20 shadow-lg"></span>
+<span class="mt-1 text-[9px] px-1.5 py-0.5 rounded bg-slate-900/80 text-blue-300 border border-blue-500/30">Security 0.7km</span>
+</div>
+<div class="absolute top-2/3 left-1/3 pointer-events-none flex flex-col items-center">
+<span class="w-3 h-3 rounded-full bg-amber-500 ring-4 ring-amber-500/20 shadow-lg"></span>
+<span class="mt-1 text-[9px] px-1.5 py-0.5 rounded bg-slate-900/80 text-amber-300 border border-amber-500/30">Fire Dept 0.9km</span>
+</div>
+<!-- Center User Geolocation & Radar Broadcast Visualizer -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none" style="width: 520px; height: 520px;">
+<!-- 1KM Perimeter Radius Ring -->
+<div class="coverage-circle w-full h-full rounded-full flex items-center justify-center relative">
+<span class="absolute top-2 text-[11px] font-medium text-red-300 tracking-wide bg-slate-950/80 px-2.5 py-0.5 rounded-full border border-red-500/30">Neighbour Alert Area</span>
+<!-- Radar Animated Ripple Waves -->
+<div class="radar-ring w-48 h-48 animate-radar-pulse"></div>
+<div class="radar-ring w-48 h-48 animate-radar-pulse-delayed"></div>
+<!-- User Origin Marker -->
+<div class="relative flex items-center justify-center w-6 h-6 rounded-full bg-red-600 ring-4 ring-white/50 shadow-2xl">
+<span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+</div>
+</div>
+</div>
+<!-- Map UI Controls (+ / - & Layers) -->
+<div class="absolute right-5 bottom-24 flex flex-col gap-2 z-30" data-purpose="map-navigation-controls">
+<div class="flex flex-col rounded-xl overflow-hidden dark-glass shadow-lg border border-white/10">
+<button aria-label="Zoom In" class="w-9 h-9 flex items-center justify-center hover:bg-slate-700/60 text-slate-200 transition border-b border-white/10" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</button>
+<button aria-label="Zoom Out" class="w-9 h-9 flex items-center justify-center hover:bg-slate-700/60 text-slate-200 transition" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 12H4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</button>
+</div>
+<button class="w-9 h-9 rounded-xl dark-glass flex items-center justify-center hover:bg-slate-700/60 text-slate-300 transition shadow-lg border border-white/10" title="Recentering GPS" type="button">
+<svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<circle cx="12" cy="12" r="3"></circle>
+<path d="M12 2v3m0 14v3M2 12h3m14 0h3" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+<!-- Leaflet / OpenStreetMap Attribution Replica -->
+<div class="absolute bottom-2 right-4 text-[10px] text-slate-400/80 font-mono tracking-tight pointer-events-none">
+      Leaflet | © Google Maps Hybrid | NearHelp Sentinel
+    </div>
+</main>
+<!-- END: InteractiveMapCanvas -->
+<!-- BEGIN: UrgentHelpCardModal -->
+<!-- Floating Centered Emergency SOS Trigger Panel -->
+<section class="fixed inset-0 z-30 pointer-events-none flex items-center justify-center p-4 sm:p-6" data-purpose="urgent-sos-interface">
+<div class="pointer-events-auto w-full max-w-[420px] rounded-3xl dark-glass p-6 sm:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-white/15 transition-all"><div class="text-center mb-5"><h2 class="text-xl sm:text-2xl font-bold tracking-tight text-white mb-1">What kind of help do you need?</h2><p class="text-xs sm:text-sm text-slate-300/90 leading-snug">Tap once to select, then hold to send alert</p></div><div aria-label="Incident Type" class="grid grid-cols-2 gap-3 mb-5" role="radiogroup"><button class="group relative flex flex-col items-center justify-center p-3 rounded-2xl bg-red-600/20 border-2 border-red-500 shadow-md shadow-red-950/40 text-center transition hover:scale-[1.02] active:scale-[0.98]" type="button"><span class="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center text-white mb-1.5 shadow-sm transition"><svg class="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg></span><span class="text-xs font-semibold text-white tracking-wide">Medical</span><span class="text-[10px] text-slate-300">Injuries, illness</span><span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-400"></span></button><button class="group relative flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-900/60 border border-white/10 hover:border-white/25 text-center transition hover:scale-[1.02] active:scale-[0.98]" type="button"><span class="w-10 h-10 rounded-xl bg-slate-800/80 group-hover:bg-amber-600/30 flex items-center justify-center text-amber-400 mb-1.5 transition"><svg class="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.61 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"></path></svg></span><span class="text-xs font-semibold text-white tracking-wide">Fire</span><span class="text-[10px] text-slate-400">Fire, smoke, gas</span></button><button class="group relative flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-900/60 border border-white/10 hover:border-white/25 text-center transition hover:scale-[1.02] active:scale-[0.98]" type="button"><span class="w-10 h-10 rounded-xl bg-slate-800/80 group-hover:bg-blue-600/30 flex items-center justify-center text-blue-400 mb-1.5 transition"><svg class="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"></path></svg></span><span class="text-xs font-semibold text-white tracking-wide">Police / Safety</span><span class="text-[10px] text-slate-400">Danger, break-in</span></button><button class="group relative flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-900/60 border border-white/10 hover:border-white/25 text-center transition hover:scale-[1.02] active:scale-[0.98]" type="button"><span class="w-10 h-10 rounded-xl bg-slate-800/80 group-hover:bg-purple-600/30 flex items-center justify-center text-purple-400 mb-1.5 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span class="text-xs font-semibold text-white tracking-wide">Other</span><span class="text-[10px] text-slate-400">Accidents, hazards</span></button></div><div class="mb-3"><button class="w-full relative group overflow-hidden py-4 px-6 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 text-white font-bold text-sm sm:text-base tracking-wide shadow-lg shadow-red-600/40 hover:shadow-red-600/60 transition-all transform active:scale-[0.98] border border-red-400/40" id="sos-trigger" type="button"><span class="relative z-10 flex flex-col items-center justify-center gap-0.5"><span class="flex items-center gap-2 text-base font-extrabold tracking-wider"><svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"></path></svg>HOLD TO SEND SOS</span><span class="text-[11px] font-normal text-red-100 opacity-90">Press &amp; hold 2 seconds to alert nearby helpers</span></span><div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div></button></div><div class="flex items-center justify-center gap-2.5 py-2 px-4 rounded-full bg-slate-900/80 border border-white/10 mb-3" data-purpose="voice-sos-guidance"><div class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></div><svg class="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 02-3-3V5a3 3 0 116 0v6a3 3 0 02-3 3z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span class="text-xs text-slate-300 font-medium tracking-wide">Or speak what happened... listening</span></div><div class="flex items-center justify-center gap-2 pt-2 border-t border-white/10"><label class="flex items-center gap-2 text-xs text-slate-300 hover:text-white cursor-pointer select-none"><input checked="" class="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 text-red-600 focus:ring-red-500 focus:ring-offset-slate-950" type="checkbox"><span class="">Keep my name private</span></label></div></div>
+</section>
+<!-- END: UrgentHelpCardModal -->
+<!-- BEGIN: BottomStatusChip -->
+<!-- Live Geolocation Accuracy & Nearby Responders Count -->
+<footer class="fixed bottom-4 inset-x-0 z-30 pointer-events-none flex justify-center px-4" data-purpose="bottom-status-indicator"><div class="pointer-events-auto flex items-center gap-2 px-5 py-2 rounded-full dark-glass shadow-lg border border-white/10 text-xs text-slate-200"><span class="text-emerald-400 font-bold text-sm">✓</span><span class="font-medium text-slate-200">Your location is detected: <strong class="text-white font-semibold">San Francisco</strong></span><span class="text-slate-500">•</span><span class="text-slate-300"><strong class="text-white font-semibold">14 nearby helpers</strong> alerted when sent</span></div></footer>
+<!-- END: BottomStatusChip -->
+<!-- Interactive hold SOS trigger event handler -->
+<script data-purpose="sos-interaction">
+    document.addEventListener('DOMContentLoaded', () => {
+      const sosBtn = document.getElementById('sos-trigger');
+      if (sosBtn) {
+        let holdTimeout;
+        sosBtn.addEventListener('mousedown', () => {
+          sosBtn.classList.add('scale-95');
+          holdTimeout = setTimeout(() => {
+            alert('🚨 SOS Dispatched! Connecting to emergency WebSocket and notifying 14 nearby responders...');
+          }, 1500);
+        });
+        const cancelHold = () => {
+          sosBtn.classList.remove('scale-95');
+          clearTimeout(holdTimeout);
+        };
+        sosBtn.addEventListener('mouseup', cancelHold);
+        sosBtn.addEventListener('mouseleave', cancelHold);
+        sosBtn.addEventListener('touchstart', () => {
+          sosBtn.classList.add('scale-95');
+          holdTimeout = setTimeout(() => {
+            alert('🚨 SOS Dispatched to nearby responders!');
+          }, 1500);
+        });
+        sosBtn.addEventListener('touchend', cancelHold);
+      }
+    });
+  </script>
+
+
+</body></html>

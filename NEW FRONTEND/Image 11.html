@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;600;700&amp;family=Space+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "secondary-fixed": "#d8e2ff", "on-primary-container": "#5b0017", "on-primary": "#67001b", "surface-tint": "#ffb2b7", "on-background": "#e2e2e8", "on-secondary-container": "#e6ecff", "on-tertiary-fixed": "#001f26", "on-secondary-fixed": "#001a42", "error": "#ffb4ab", "on-tertiary-container": "#002f38", "secondary-fixed-dim": "#adc6ff", "surface-container-lowest": "#0c0e12", "on-error-container": "#ffdad6", "inverse-primary": "#bc0b3b", "surface-container-highest": "#333539", "on-surface-variant": "#e3bdbf", "error-container": "#93000a", "surface-bright": "#37393e", "surface-variant": "#333539", "on-secondary": "#002e6a", "secondary-container": "#0566d9", "tertiary-fixed-dim": "#4cd7f6", "on-primary-fixed-variant": "#92002a", "on-secondary-fixed-variant": "#004395", "on-tertiary-fixed-variant": "#004e5c", "surface": "#111317", "surface-container-low": "#1a1c20", "surface-dim": "#111317", "tertiary-fixed": "#acedff", "primary-container": "#ff516a", "on-primary-fixed": "#40000d", "outline-variant": "#5b4041", "background": "#111317", "tertiary": "#4cd7f6", "on-error": "#690005", "on-surface": "#e2e2e8", "on-tertiary": "#003640", "outline": "#aa888a", "surface-container-high": "#282a2e", "primary": "#ffb2b7", "primary-fixed-dim": "#ffb2b7", "surface-container": "#1e2024", "inverse-surface": "#e2e2e8", "primary-fixed": "#ffdadb", "tertiary-container": "#009eb9", "secondary": "#adc6ff", "inverse-on-surface": "#2f3035" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "unit-sm": "0.75rem", "unit-2xl": "3rem", "margin-desktop": "2rem", "unit-xs": "0.5rem", "unit-lg": "1.5rem", "unit-md": "1rem", "unit-xl": "2rem", "margin-mobile": "1rem", "gutter-hud": "1.25rem", "unit-2xs": "0.25rem" }, "fontFamily": { "label-caps": [ "Inter" ], "body-bold": [ "Inter" ], "telemetry-coord": [ "JetBrains Mono" ], "telemetry-time": [ "JetBrains Mono" ], "telemetry-stat": [ "JetBrains Mono" ], "body-base": [ "Inter" ], "headline-sm": [ "Space Grotesk" ], "display-lg-mobile": [ "Space Grotesk" ], "caption": [ "Inter" ], "display-lg": [ "Space Grotesk" ], "headline-md": [ "Space Grotesk" ] }, "fontSize": { "label-caps": [ "11px", { "lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "700" } ], "body-bold": [ "15px", { "lineHeight": "22px", "fontWeight": "600" } ], "telemetry-coord": [ "13px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "500" } ], "telemetry-time": [ "14px", { "lineHeight": "18px", "letterSpacing": "-0.01em", "fontWeight": "600" } ], "telemetry-stat": [ "28px", { "lineHeight": "32px", "letterSpacing": "-0.03em", "fontWeight": "700" } ], "body-base": [ "15px", { "lineHeight": "22px", "fontWeight": "400" } ], "headline-sm": [ "18px", { "lineHeight": "24px", "letterSpacing": "-0.005em", "fontWeight": "600" } ], "display-lg-mobile": [ "26px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "caption": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" } ], "display-lg": [ "32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "headline-md": [ "24px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600" } ] } } } };</script></head><body class="bg-background font-body-base text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 w-full z-50 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.4)]"><div class="h-16 w-full px-margin-desktop flex items-center justify-between gap-unit-md"><div class="flex items-center gap-unit-md"><img alt="Brand logo. - Primary color: #f43f5e
+- Font: spaceGrotesk
+- Mode: dark
+- Roundness: rounded-sm
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1V_tpcA87qQayscuHMOcfvv4k4Q9nwb7VWNOEoFmPGq3I2jL6lpVQhlTDtFVFYw4v4HkLICcQl7nrJCyfL2RHT6QnCcJvtlEURWpFt2fu2Aiw7gOEJUbJz-LciIMeW71GbnWviOM_xXq0pmMG2Ad_Vd0mbRmQ4_1WF6eJ6THhoypj7YiMMme0651vuK5IiuyYjZzr7uW8hM7WZ7K4W5lI26jqyZPzXxK1poNu2P0v8k9XqmjQ6nJqMDimPf"/><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight">NearHelp</span><div class="flex items-center gap-unit-2xs px-unit-xs py-unit-2xs rounded-DEFAULT bg-primary-container text-on-primary-container font-label-caps text-label-caps uppercase"><span class="w-2 h-2 rounded-full bg-on-primary-container animate-ping"></span><span>LIVE 1KM</span></div></div><nav class="hidden xl:flex items-center gap-unit-lg" data-active-classes="text-primary font-bold"><a class="text-on-surface-variant hover:text-on-surface font-body-bold text-caption uppercase tracking-wider transition-colors" data-path="sos-alert" href="#">SOS Alert</a><a class="text-on-surface-variant hover:text-on-surface font-body-bold text-caption uppercase tracking-wider transition-colors" data-path="live-tracking-eta" href="#">Live Tracking &amp; ETA</a><a class="text-on-surface-variant hover:text-on-surface font-body-bold text-caption uppercase tracking-wider transition-colors" data-path="community-map" href="#">Community Map</a><a aria-current="page" class="uppercase tracking-wider transition-colors text-primary font-bold" data-path="first-aid-guides" href="#">First Aid Guides</a></nav><div class="flex items-center gap-unit-md"><div class="flex items-center bg-surface-container p-unit-2xs rounded-DEFAULT"><button class="px-unit-xs py-unit-2xs rounded-DEFAULT bg-surface-bright text-on-surface font-label-caps text-label-caps uppercase">Citizen</button><button class="px-unit-xs py-unit-2xs rounded-DEFAULT text-on-surface-variant hover:text-on-surface font-label-caps text-label-caps uppercase transition-colors">Responder</button></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-surface min-h-screen pb-12"><div class="flex flex-col w-full">
+<div class="relative w-full overflow-hidden">
+<!-- Subtle Cartographic Ambient Map Canvas -->
+<div class="absolute inset-0 pointer-events-none opacity-25 mix-blend-luminosity">
+<div class="w-full h-full bg-cover bg-center" data-location="Chicago, IL" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA3MA4367-IJF31bWjhZ6boZULcLxhpAu4_biQIs1twdBO-8cHby0OG4ud1O69KSM_miJwNq_pjlJstNgHasGqxf4YF3LIWh1QYBbCYG9SjOdKwkqgzVu3dxzpcQ5XBv2ul4OMWotj88Ny9VO6Dh0DQXXKxyeMRdxrYFPYFpBG2TGC-RaKA3ji1dfRS4jo3dEEIIlMz4qBi3LClJi-C4qmnFf6ztsxEM4nwF5tWs1Ob9nTYVHfsl_0_MA'); filter: grayscale(100%) contrast(140%) brightness(40%);"></div>
+<div class="absolute inset-0 bg-gradient-to-b from-surface via-surface/90 to-surface"></div>
+</div>
+<!-- Main Operational Workspace -->
+<div class="relative z-10 px-margin-mobile md:px-margin-desktop py-unit-lg flex flex-col gap-unit-xl max-w-7xl mx-auto w-full">
+<!-- Top Action Bar & Offline State Banner -->
+<section class="flex flex-col md:flex-row md:items-center justify-between gap-unit-md">
+<div class="flex flex-col gap-unit-2xs">
+<div class="flex items-center gap-unit-xs">
+<span class="inline-flex items-center gap-unit-2xs px-unit-xs py-unit-2xs rounded bg-tertiary-container/30 text-tertiary font-label-caps text-label-caps tracking-wider uppercase">
+<span class="material-symbols-outlined text-[14px]">offline_pin</span>
+              Cached Offline Cache v4.2
+            </span>
+<span class="inline-flex items-center gap-unit-2xs px-unit-xs py-unit-2xs rounded bg-surface-container-high text-on-surface-variant font-label-caps text-label-caps tracking-wider uppercase">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+              Local Storage Sync
+            </span>
+</div>
+<h1 class="font-headline-md text-headline-md text-on-surface tracking-tight">
+            Emergency First Aid Guides
+          </h1>
+<p class="font-body-base text-caption text-on-surface-variant">
+            Standard Operating Life-Support Procedures. Operational without active network uplink.
+          </p>
+</div>
+<!-- Rapid 911 Emergency Dial Button -->
+<div class="flex items-center gap-unit-sm self-start md:self-auto">
+<a class="group relative flex items-center gap-unit-sm px-unit-lg py-unit-sm rounded bg-primary-container text-on-primary-container font-headline-sm text-headline-sm font-bold shadow-xl shadow-primary-container/20 transition-all active:scale-95" href="tel:911">
+<span class="relative flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-on-primary-container opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-on-primary-container"></span>
+</span>
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">phone_in_talk</span>
+<span>EMERGENCY DIAL 911</span>
+</a>
+</div>
+</section>
+<!-- Instant Symptom Search HUD Input -->
+<section class="w-full">
+<div class="relative w-full rounded bg-surface-container-low shadow-md focus-within:ring-2 focus-within:ring-tertiary transition-all">
+<div class="absolute inset-y-0 left-0 pl-unit-md flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined text-[22px]">search</span>
+</div>
+<input class="w-full pl-12 pr-unit-xl py-unit-md bg-transparent text-on-surface placeholder:text-on-surface-variant/60 font-body-base text-body-base focus:outline-none" id="symptom-search" placeholder="Search symptoms: choking, arterial bleeding, 3rd-degree burn, anaphylaxis, seizure..." type="text"/>
+<div class="absolute inset-y-0 right-0 pr-unit-md flex items-center gap-unit-xs">
+<span class="hidden sm:inline font-telemetry-coord text-label-caps px-unit-xs py-unit-2xs rounded bg-surface-container text-on-surface-variant uppercase">ESC to Clear</span>
+<button class="text-on-surface-variant hover:text-on-surface transition-colors" title="Voice Input">
+<span class="material-symbols-outlined text-[20px]">mic</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Protocol Filter Pills Bar -->
+<section class="flex items-center gap-unit-xs overflow-x-auto pb-unit-2xs no-scrollbar">
+<button class="flex items-center gap-unit-xs px-unit-md py-unit-xs rounded bg-primary-container text-on-primary-container font-label-caps text-label-caps uppercase tracking-wider shrink-0 shadow-lg shadow-primary-container/20">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">cardiology</span>
+<span>CPR &amp; Choking</span>
+</button>
+<button class="flex items-center gap-unit-xs px-unit-md py-unit-xs rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-label-caps text-label-caps uppercase tracking-wider shrink-0 transition-colors">
+<span class="material-symbols-outlined text-[16px]">bloodtype</span>
+<span>Severe Bleeding</span>
+</button>
+<button class="flex items-center gap-unit-xs px-unit-md py-unit-xs rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-label-caps text-label-caps uppercase tracking-wider shrink-0 transition-colors">
+<span class="material-symbols-outlined text-[16px]">local_fire_department</span>
+<span>Burns &amp; Scalds</span>
+</button>
+<button class="flex items-center gap-unit-xs px-unit-md py-unit-xs rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-label-caps text-label-caps uppercase tracking-wider shrink-0 transition-colors">
+<span class="material-symbols-outlined text-[16px]">neurology</span>
+<span>Seizures / Epilepsy</span>
+</button>
+<button class="flex items-center gap-unit-xs px-unit-md py-unit-xs rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-label-caps text-label-caps uppercase tracking-wider shrink-0 transition-colors">
+<span class="material-symbols-outlined text-[16px]">vaccines</span>
+<span>Allergic / EpiPen</span>
+</button>
+<button class="flex items-center gap-unit-xs px-unit-md py-unit-xs rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-label-caps text-label-caps uppercase tracking-wider shrink-0 transition-colors">
+<span class="material-symbols-outlined text-[16px]">masks</span>
+<span>Poison / Inhalation</span>
+</button>
+</section>
+<!-- Main Protocol Grid (Asymmetric Bento Layout) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-unit-lg items-start">
+<!-- Left: Featured Step-by-Step Card (8 cols) -->
+<article class="lg:col-span-8 flex flex-col gap-unit-lg p-unit-lg md:p-unit-xl rounded bg-surface-container shadow-2xl relative overflow-hidden">
+<div class="absolute top-0 right-0 w-80 h-80 bg-primary-container/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
+<!-- Card Header & Metadata -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-unit-sm pb-unit-sm">
+<div class="flex items-center gap-unit-sm">
+<span class="p-unit-xs rounded bg-error-container text-on-error-container">
+<span class="material-symbols-outlined text-[24px]">vital_signs</span>
+</span>
+<div>
+<span class="font-label-caps text-label-caps text-tertiary tracking-widest uppercase">CRITICAL PROTOCOL 01-A</span>
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold">Hands-Only Adult CPR</h2>
+</div>
+</div>
+<div class="flex items-center gap-unit-xs">
+<span class="px-unit-xs py-unit-2xs rounded bg-surface-container-highest text-secondary font-telemetry-coord text-caption">Adult (Age &gt; 8)</span>
+<span class="px-unit-xs py-unit-2xs rounded bg-surface-container-highest text-tertiary font-telemetry-coord text-caption">No Rescue Breaths</span>
+</div>
+</div>
+<!-- Acoustic Rhythm / Metronome Tactical Console -->
+<div class="w-full p-unit-md rounded bg-surface-container-lowest flex flex-col sm:flex-row items-center justify-between gap-unit-md">
+<div class="flex items-center gap-unit-md w-full sm:w-auto">
+<!-- Visual Metronome Pulse Indicator -->
+<div class="relative w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center shrink-0" id="metronome-beacon">
+<div class="absolute inset-0 rounded-full bg-primary opacity-0 scale-95 transition-transform duration-100" id="metronome-ring"></div>
+<span class="material-symbols-outlined text-primary text-[22px] relative z-10" id="metronome-icon">graphic_eq</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-unit-xs">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">RHYTHM CADENCE</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high text-tertiary font-telemetry-time text-label-caps">110 BPM</span>
+</div>
+<span class="font-telemetry-stat text-telemetry-stat text-on-surface tracking-tight" id="bpm-counter">100 - 120 <span class="text-caption font-body-base text-on-surface-variant font-normal">BPM OPTIMAL</span></span>
+</div>
+</div>
+<!-- Metronome Audio Controller Button -->
+<button class="w-full sm:w-auto flex items-center justify-center gap-unit-xs px-unit-lg py-unit-sm rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-body-bold text-body-bold transition-all active:scale-95 shadow-md" id="toggle-metronome">
+<span class="material-symbols-outlined text-[20px] text-tertiary" id="audio-play-icon">play_arrow</span>
+<span id="audio-btn-label">Play Metronome Beat</span>
+</button>
+</div>
+<!-- Chronological Procedural Steps -->
+<div class="flex flex-col gap-unit-md">
+<!-- Step 1 -->
+<div class="flex items-start gap-unit-md p-unit-md rounded bg-surface-container-low hover:bg-surface-container-high/60 transition-colors">
+<div class="flex items-center justify-center w-8 h-8 rounded bg-surface-container-highest text-tertiary font-telemetry-coord font-bold text-body-bold shrink-0">
+                01
+              </div>
+<div class="flex flex-col gap-unit-2xs flex-1">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Check Responsiveness &amp; Call 911</h3>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Sec 0 - 10</span>
+</div>
+<p class="font-body-base text-body-base text-on-surface-variant">
+                  Tap victim firmly on both shoulders and shout loudly: <strong class="text-on-surface font-semibold">“Are you okay?”</strong>. Look for normal chest rise or breathing. If unresponsive, shout to a specific bystander to dial 911 and retrieve an AED immediately.
+                </p>
+<div class="flex items-center gap-unit-xs mt-unit-2xs">
+<span class="material-symbols-outlined text-primary text-[18px]">warning</span>
+<span class="font-caption text-caption text-primary">Agonal gasping is NOT normal breathing. Initiate CPR immediately.</span>
+</div>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="flex items-start gap-unit-md p-unit-md rounded bg-surface-container-low hover:bg-surface-container-high/60 transition-colors">
+<div class="flex items-center justify-center w-8 h-8 rounded bg-surface-container-highest text-tertiary font-telemetry-coord font-bold text-body-bold shrink-0">
+                02
+              </div>
+<div class="flex flex-col gap-unit-2xs flex-1">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Push Hard &amp; Fast (Center of Chest)</h3>
+<span class="font-label-caps text-label-caps text-primary uppercase">Depth: 2.0 - 2.4 IN</span>
+</div>
+<p class="font-body-base text-body-base text-on-surface-variant">
+                  Interlock fingers with hands stacked flat. Place heel of bottom hand on the center of the chest (lower half of breastbone). Lock elbows directly straight. Position shoulders perpendicular to chest. Push downwards at least 2 to 2.4 inches (5-6 cm) and allow complete chest recoil between pumps.
+                </p>
+<!-- Depth & Cadence Mini HUD visual -->
+<div class="mt-unit-xs p-unit-xs rounded bg-surface-container-lowest flex items-center justify-between gap-unit-md">
+<div class="flex items-center gap-unit-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-tertiary">straighten</span>
+<span class="font-caption text-caption">Recoil: Complete relaxation without lifting hands</span>
+</div>
+<div class="flex items-center gap-unit-2xs font-telemetry-coord text-label-caps text-secondary">
+<span>TARGET: 24 COMPRESSIONS / 12 SEC</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="flex items-start gap-unit-md p-unit-md rounded bg-surface-container-low hover:bg-surface-container-high/60 transition-colors">
+<div class="flex items-center justify-center w-8 h-8 rounded bg-surface-container-highest text-tertiary font-telemetry-coord font-bold text-body-bold shrink-0">
+                03
+              </div>
+<div class="flex flex-col gap-unit-2xs flex-1">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Continuous Cycles Until Relieved</h3>
+<span class="font-label-caps text-label-caps text-secondary uppercase">No Interruption</span>
+</div>
+<p class="font-body-base text-body-base text-on-surface-variant">
+                  Do not stop compressions unless victim clearly shows signs of movement or consciousness, a certified EMS team takes over, or an Automated External Defibrillator (AED) is active and analyzing heart rhythm.
+                </p>
+<div class="flex items-center gap-unit-xs mt-unit-2xs">
+<span class="material-symbols-outlined text-secondary text-[18px]">cached</span>
+<span class="font-caption text-caption text-secondary">Rotate compression operators every 2 minutes (approx. 200 cycles) to avoid exhaustion.</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Step Visual Diagram Component -->
+<div class="w-full rounded bg-surface-container-lowest p-unit-md flex flex-col md:flex-row items-center gap-unit-lg">
+<div class="w-full md:w-48 h-32 rounded bg-surface-container-high relative overflow-hidden shrink-0">
+<img class="w-full h-full object-cover opacity-80" data-alt="Medical anatomical line illustration in dark tactical style with glowing cyan vectors showing hand placement on adult chest for Hands-Only CPR, high contrast minimal technical emergency instructional vector" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUaUXiLFM1ICdX1C8Sc6hT5TWrgTwHaXc-I0xxRuPrVwkfWvqGEOPCHocXlQAWtr_LJGkIaniOV9R086H5bY4SPQrR1eKjrftV6mIQwaTNtZF0-SHj1p_N3j4X-rNR2WuDbpcPnj2tjvmKiQAhlQ1IazDSGHxJyYIG92-Ki4A8SOPd6UQsPOY2svROPCNC5btdqATaDJGVs68HW2wsbT_oaIrwP0zQZgTKCNAqfR-e5gDZTHt742GKhA"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent"></div>
+<span class="absolute bottom-2 left-2 font-telemetry-coord text-label-caps px-1.5 py-0.5 rounded bg-surface-container text-tertiary">FIG 01: STERNUM PLACEMENT</span>
+</div>
+<div class="flex flex-col gap-unit-2xs">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold">Visual Alignment Check</span>
+<p class="font-body-base text-caption text-on-surface-variant">
+                Avoid ribs and upper stomach. Sternum heel alignment minimizes skeletal fracture risk and optimizes aortic blood circulation during cardiac standstill.
+              </p>
+<div class="flex items-center gap-unit-sm mt-unit-2xs">
+<span class="flex items-center gap-1 font-label-caps text-label-caps text-tertiary">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Arms Perpendicular (90°)
+                </span>
+<span class="flex items-center gap-1 font-label-caps text-label-caps text-tertiary">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Locked Elbows
+                </span>
+</div>
+</div>
+</div>
+</article>
+<!-- Right: Tactical Assistant, Voice Coach & Secondary Protocols (4 cols) -->
+<aside class="lg:col-span-4 flex flex-col gap-unit-md w-full">
+<!-- Voice Guide Audio Coach Module -->
+<div class="p-unit-lg rounded bg-surface-container flex flex-col gap-unit-md shadow-xl relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-unit-xs">
+<span class="material-symbols-outlined text-tertiary text-[24px]">record_voice_over</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Calm Voice Guide</h3>
+</div>
+<span class="px-unit-xs py-unit-2xs rounded bg-surface-container-highest text-tertiary font-label-caps text-label-caps uppercase">Offline TTS</span>
+</div>
+<p class="font-body-base text-caption text-on-surface-variant">
+              Tap to hear real-time spoken step-by-step instructions. Optimized for loud emergency environments with pacing audio cues.
+            </p>
+<button class="w-full flex items-center justify-center gap-unit-sm py-unit-sm px-unit-md rounded bg-tertiary-container text-on-tertiary-container font-body-bold text-body-bold hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-tertiary-container/20" id="voice-coach-btn">
+<span class="material-symbols-outlined text-[20px]" id="voice-coach-icon">volume_up</span>
+<span id="voice-coach-label">Start Spoken Guidance</span>
+</button>
+<!-- Spoken Script Snippet Visual Display -->
+<div class="p-unit-xs rounded bg-surface-container-lowest font-telemetry-coord text-caption text-on-surface-variant flex items-center gap-unit-xs">
+<span class="material-symbols-outlined text-[16px] text-tertiary shrink-0">info</span>
+<span class="truncate">“Place heel of hand in center of chest...”</span>
+</div>
+</div>
+<!-- Secondary Incident Fast References -->
+<div class="p-unit-lg rounded bg-surface-container flex flex-col gap-unit-md shadow-xl">
+<div class="flex items-center justify-between pb-unit-xs">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Rapid Protocols</h3>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Index</span>
+</div>
+<!-- Protocol Quick Row 1: Choking -->
+<a class="group p-unit-sm rounded bg-surface-container-low hover:bg-surface-container-high transition-colors flex items-center justify-between gap-unit-sm" href="#">
+<div class="flex items-center gap-unit-sm min-w-0">
+<span class="p-unit-xs rounded bg-surface-container-highest text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors shrink-0">
+<span class="material-symbols-outlined text-[18px]">air</span>
+</span>
+<div class="flex flex-col min-w-0">
+<span class="font-body-bold text-body-bold text-on-surface truncate">Choking (Heimlich)</span>
+<span class="font-caption text-caption text-on-surface-variant truncate">5 back blows, 5 abdominal thrusts</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px] group-hover:translate-x-1 transition-transform">chevron_right</span>
+</a>
+<!-- Protocol Quick Row 2: Severe Arterial Bleeding -->
+<a class="group p-unit-sm rounded bg-surface-container-low hover:bg-surface-container-high transition-colors flex items-center justify-between gap-unit-sm" href="#">
+<div class="flex items-center gap-unit-sm min-w-0">
+<span class="p-unit-xs rounded bg-surface-container-highest text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors shrink-0">
+<span class="material-symbols-outlined text-[18px]">emergency</span>
+</span>
+<div class="flex flex-col min-w-0">
+<span class="font-body-bold text-body-bold text-on-surface truncate">Severe Bleeding / Hemorrhage</span>
+<span class="font-caption text-caption text-on-surface-variant truncate">Direct pressure, pack wound, tourniquet</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px] group-hover:translate-x-1 transition-transform">chevron_right</span>
+</a>
+<!-- Protocol Quick Row 3: Burns -->
+<a class="group p-unit-sm rounded bg-surface-container-low hover:bg-surface-container-high transition-colors flex items-center justify-between gap-unit-sm" href="#">
+<div class="flex items-center gap-unit-sm min-w-0">
+<span class="p-unit-xs rounded bg-surface-container-highest text-secondary group-hover:bg-secondary group-hover:text-on-secondary transition-colors shrink-0">
+<span class="material-symbols-outlined text-[18px]">water_drop</span>
+</span>
+<div class="flex flex-col min-w-0">
+<span class="font-body-bold text-body-bold text-on-surface truncate">Burns &amp; Thermal Trauma</span>
+<span class="font-caption text-caption text-on-surface-variant truncate">Cool running water 20m, cling film wrap</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px] group-hover:translate-x-1 transition-transform">chevron_right</span>
+</a>
+<!-- Protocol Quick Row 4: EpiPen / Anaphylaxis -->
+<a class="group p-unit-sm rounded bg-surface-container-low hover:bg-surface-container-high transition-colors flex items-center justify-between gap-unit-sm" href="#">
+<div class="flex items-center gap-unit-sm min-w-0">
+<span class="p-unit-xs rounded bg-surface-container-highest text-tertiary group-hover:bg-tertiary group-hover:text-on-tertiary transition-colors shrink-0">
+<span class="material-symbols-outlined text-[18px]">medication</span>
+</span>
+<div class="flex flex-col min-w-0">
+<span class="font-body-bold text-body-bold text-on-surface truncate">Anaphylaxis &amp; Auto-Injector</span>
+<span class="font-caption text-caption text-on-surface-variant truncate">Blue to sky, orange to thigh, hold 3s</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px] group-hover:translate-x-1 transition-transform">chevron_right</span>
+</a>
+</div>
+<!-- Offline Preparedness Badge Card -->
+<div class="p-unit-md rounded bg-surface-container-low flex items-center gap-unit-md">
+<div class="p-unit-sm rounded bg-surface-container text-tertiary shrink-0">
+<span class="material-symbols-outlined text-[24px]">cloud_done</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface uppercase">Full Offline Library Loaded</span>
+<span class="font-caption text-caption text-on-surface-variant">All 48 AHA &amp; ILCOR emergency manuals verified ready for airplane mode or cellular collapse.</span>
+</div>
+</div>
+</aside>
+</div>
+</div>
+</div>
+<!-- Interactive Metronome & Voice Coach Script -->
+<script>
+    (function() {
+      // Metronome State
+      let isPlaying = false;
+      let intervalId = null;
+      let audioCtx = null;
+      const bpm = 110;
+      const intervalMs = (60 / bpm) * 1000;
+
+      const toggleBtn = document.getElementById('toggle-metronome');
+      const btnLabel = document.getElementById('audio-btn-label');
+      const playIcon = document.getElementById('audio-play-icon');
+      const ring = document.getElementById('metronome-ring');
+      const beacon = document.getElementById('metronome-beacon');
+
+      function playBeep() {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Crisp audible pulse
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.09);
+
+        // Visual animation pulse
+        ring.classList.remove('opacity-0', 'scale-95');
+        ring.classList.add('opacity-80', 'scale-125');
+        setTimeout(() => {
+          ring.classList.remove('opacity-80', 'scale-125');
+          ring.classList.add('opacity-0', 'scale-95');
+        }, 120);
+      }
+
+      toggleBtn.addEventListener('click', function() {
+        if (isPlaying) {
+          clearInterval(intervalId);
+          isPlaying = false;
+          btnLabel.textContent = 'Play Metronome Beat';
+          playIcon.textContent = 'play_arrow';
+          toggleBtn.classList.remove('bg-primary-container', 'text-on-primary-container');
+        } else {
+          isPlaying = true;
+          playBeep();
+          intervalId = setInterval(playBeep, intervalMs);
+          btnLabel.textContent = 'Pause Beat (110 BPM)';
+          playIcon.textContent = 'pause';
+          toggleBtn.classList.add('bg-primary-container', 'text-on-primary-container');
+        }
+      });
+
+      // Voice Coach Synthesis (Native offline Web Speech API)
+      const voiceBtn = document.getElementById('voice-coach-btn');
+      const voiceLabel = document.getElementById('voice-coach-label');
+      const voiceIcon = document.getElementById('voice-coach-icon');
+      let isSpeaking = false;
+
+      voiceBtn.addEventListener('click', function() {
+        if ('speechSynthesis' in window) {
+          if (isSpeaking) {
+            window.speechSynthesis.cancel();
+            isSpeaking = false;
+            voiceLabel.textContent = 'Start Spoken Guidance';
+            voiceIcon.textContent = 'volume_up';
+          } else {
+            window.speechSynthesis.cancel();
+            const text = "Hands-only C P R. Step one: Tap shoulders firmly and shout: Are you okay? Call 9 1 1 now. Step two: Place the heel of your hand on the center of the chest. Push hard and fast to the beat. Two to two point four inches deep. Do not stop until paramedics take over.";
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.95;
+            utterance.pitch = 1.0;
+            
+            utterance.onend = function() {
+              isSpeaking = false;
+              voiceLabel.textContent = 'Start Spoken Guidance';
+              voiceIcon.textContent = 'volume_up';
+            };
+
+            window.speechSynthesis.speak(utterance);
+            isSpeaking = true;
+            voiceLabel.textContent = 'Stop Voice Guide';
+            voiceIcon.textContent = 'stop';
+          }
+        } else {
+          alert('Spoken voice synthesis is unsupported in this web environment.');
+        }
+      });
+    })();
+  </script>
+</div></main><footer class="fixed bottom-0 w-full z-40 bg-surface/90 backdrop-blur-xl shadow-[0_-1px_8px_rgba(0,0,0,0.4)]"><div class="h-12 w-full px-margin-desktop flex items-center justify-between font-telemetry-coord text-telemetry-coord"><div class="flex items-center gap-unit-lg"><div class="flex items-center gap-unit-2xs text-tertiary"><span class="material-symbols-outlined text-[16px]">my_location</span><span class="font-label-caps text-label-caps uppercase text-on-surface-variant">GPS ACCURACY:</span><span class="font-telemetry-time text-telemetry-time text-on-surface">±1.4M OPTIMAL</span></div><div class="hidden sm:flex items-center gap-unit-2xs text-secondary"><span class="material-symbols-outlined text-[16px]">emergency</span><span class="font-label-caps text-label-caps uppercase text-on-surface-variant">ACTIVE UNITS IN 1KM:</span><span class="font-telemetry-time text-telemetry-time text-on-surface">8 RESPONDERS</span></div></div><div class="flex items-center gap-unit-md"><div class="flex items-center gap-unit-2xs"><span class="w-2 h-2 rounded-full bg-tertiary"></span><span class="font-label-caps text-label-caps uppercase text-on-surface-variant">TELEMETRY LIVE</span></div></div></div></footer></body></html>

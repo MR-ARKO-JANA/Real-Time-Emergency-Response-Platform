@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;600;700&amp;family=Space+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "secondary-fixed": "#d8e2ff", "on-primary-container": "#5b0017", "on-primary": "#67001b", "surface-tint": "#ffb2b7", "on-background": "#e2e2e8", "on-secondary-container": "#e6ecff", "on-tertiary-fixed": "#001f26", "on-secondary-fixed": "#001a42", "error": "#ffb4ab", "on-tertiary-container": "#002f38", "secondary-fixed-dim": "#adc6ff", "surface-container-lowest": "#0c0e12", "on-error-container": "#ffdad6", "inverse-primary": "#bc0b3b", "surface-container-highest": "#333539", "on-surface-variant": "#e3bdbf", "error-container": "#93000a", "surface-bright": "#37393e", "surface-variant": "#333539", "on-secondary": "#002e6a", "secondary-container": "#0566d9", "tertiary-fixed-dim": "#4cd7f6", "on-primary-fixed-variant": "#92002a", "on-secondary-fixed-variant": "#004395", "on-tertiary-fixed-variant": "#004e5c", "surface": "#111317", "surface-container-low": "#1a1c20", "surface-dim": "#111317", "tertiary-fixed": "#acedff", "primary-container": "#ff516a", "on-primary-fixed": "#40000d", "outline-variant": "#5b4041", "background": "#111317", "tertiary": "#4cd7f6", "on-error": "#690005", "on-surface": "#e2e2e8", "on-tertiary": "#003640", "outline": "#aa888a", "surface-container-high": "#282a2e", "primary": "#ffb2b7", "primary-fixed-dim": "#ffb2b7", "surface-container": "#1e2024", "inverse-surface": "#e2e2e8", "primary-fixed": "#ffdadb", "tertiary-container": "#009eb9", "secondary": "#adc6ff", "inverse-on-surface": "#2f3035" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "unit-sm": "0.75rem", "unit-2xl": "3rem", "margin-desktop": "2rem", "unit-xs": "0.5rem", "unit-lg": "1.5rem", "unit-md": "1rem", "unit-xl": "2rem", "margin-mobile": "1rem", "gutter-hud": "1.25rem", "unit-2xs": "0.25rem" }, "fontFamily": { "label-caps": [ "Inter" ], "body-bold": [ "Inter" ], "telemetry-coord": [ "JetBrains Mono" ], "telemetry-time": [ "JetBrains Mono" ], "telemetry-stat": [ "JetBrains Mono" ], "body-base": [ "Inter" ], "headline-sm": [ "Space Grotesk" ], "display-lg-mobile": [ "Space Grotesk" ], "caption": [ "Inter" ], "display-lg": [ "Space Grotesk" ], "headline-md": [ "Space Grotesk" ] }, "fontSize": { "label-caps": [ "11px", { "lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "700" } ], "body-bold": [ "15px", { "lineHeight": "22px", "fontWeight": "600" } ], "telemetry-coord": [ "13px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "500" } ], "telemetry-time": [ "14px", { "lineHeight": "18px", "letterSpacing": "-0.01em", "fontWeight": "600" } ], "telemetry-stat": [ "28px", { "lineHeight": "32px", "letterSpacing": "-0.03em", "fontWeight": "700" } ], "body-base": [ "15px", { "lineHeight": "22px", "fontWeight": "400" } ], "headline-sm": [ "18px", { "lineHeight": "24px", "letterSpacing": "-0.005em", "fontWeight": "600" } ], "display-lg-mobile": [ "26px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "caption": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" } ], "display-lg": [ "32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "headline-md": [ "24px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600" } ] } } } };</script></head><body class="bg-background font-body-base text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container"><main class="w-full bg-surface min-h-screen flex items-center justify-center"><div class="flex flex-col w-full relative min-h-screen overflow-hidden select-none">
+<!-- Interactive Ambient Tactical Canvas / Map Canvas Layer -->
+<div class="absolute inset-0 z-0 bg-surface-container-lowest" data-location="442 Market St, San Francisco, CA" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC6B0k5Vgv2vmSmPtEYbY9sSF3Eoz9aU8-CvpKmdRzvUpn8DjyMsADyKJ9Kz1TqVNljb-yoooqM-4T9fGSMQVdSqjsyImNNRdw-hW9vuggSxoqVZ7gKphbBggeOCjzqXnRXey_bKpVj8-30SigJGnhFmZfXQ3b0u4aMUN9ygaoxshkpa-gqGrCQTYvZeXkGxpWeM80iG17LfsI9FpS4N-0jxnc15TOj8LlP-gb9iGvw9nlWSpDXEf5M9w')">
+<div class="absolute inset-0 bg-surface-container-lowest/85 backdrop-blur-[2px]"></div>
+<!-- Geospatial Tactical Grid Mesh -->
+<svg class="absolute inset-0 w-full h-full opacity-20 pointer-events-none text-outline-variant" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<pattern height="72" id="tactical-grid" patternunits="userSpaceOnUse" width="72">
+<path d="M 72 0 L 0 0 0 72" fill="none" stroke="currentColor" stroke-dasharray="2 6" stroke-width="0.75"></path>
+<circle cx="72" cy="72" fill="currentColor" r="1.5"></circle>
+</pattern>
+</defs>
+<rect fill="url(#tactical-grid)" height="100%" width="100%"></rect>
+</svg>
+<!-- Map Markers / Pulsing Beacons -->
+<!-- Primary Alert Beacon (0.4 km) -->
+<div class="absolute top-[28%] left-[34%] -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+<span class="relative flex h-16 w-16 items-center justify-center">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-container opacity-40"></span>
+<span class="relative inline-flex rounded-full h-8 w-8 bg-primary-container shadow-xl items-center justify-center text-on-primary font-label-caps text-label-caps font-bold">
+          SOS
+        </span>
+</span>
+<div class="absolute top-10 left-1/2 -translate-x-1/2 whitespace-nowrap bg-surface-container-highest/95 px-unit-xs py-unit-2xs rounded-lg shadow-md font-telemetry-coord text-telemetry-coord text-on-surface">
+        442 MARKET ST • 0.4 KM
+      </div>
+</div>
+<!-- Secondary Alert Beacon (0.9 km) -->
+<div class="absolute top-[58%] left-[68%] -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-80">
+<span class="relative flex h-10 w-10 items-center justify-center">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary-container opacity-25"></span>
+<span class="relative inline-flex rounded-full h-5 w-5 bg-tertiary-container items-center justify-center">
+<span class="material-symbols-outlined text-[13px] text-on-tertiary-container" style="font-variation-settings: 'FILL' 1;">shield</span>
+</span>
+</span>
+<div class="absolute top-6 left-1/2 -translate-x-1/2 whitespace-nowrap bg-surface-container-high/90 px-unit-xs py-unit-2xs rounded-lg font-telemetry-coord text-caption text-on-surface-variant">
+        SECTOR 7-B • 0.9 KM
+      </div>
+</div>
+<!-- Responder Self Puck (Current Location) -->
+<div class="absolute bottom-[24%] left-[42%] -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+<div class="relative flex items-center justify-center">
+<div class="absolute h-14 w-14 rounded-full bg-secondary-container/20 animate-pulse"></div>
+<div class="h-6 w-6 rounded-full bg-secondary-container flex items-center justify-center shadow-lg ring-offset-2">
+<span class="material-symbols-outlined text-on-secondary-container text-sm">navigation</span>
+</div>
+</div>
+<span class="absolute -bottom-5 left-1/2 -translate-x-1/2 text-caption font-label-caps text-secondary uppercase tracking-widest whitespace-nowrap">RES-03 (YOU)</span>
+</div>
+</div>
+<!-- HUD Overlay & Dynamic Floating Workspace -->
+<div class="relative z-10 flex flex-col justify-between min-h-screen px-unit-md py-unit-md max-w-6xl mx-auto w-full pointer-events-none">
+<!-- Top System Strip: State Toggle & Telemetry Cluster -->
+<header class="w-full flex flex-col sm:flex-row items-center justify-between gap-unit-sm pointer-events-auto">
+<!-- Sector Info & Identity -->
+<div class="flex items-center gap-unit-sm bg-surface-container-low/90 backdrop-blur-md px-unit-md py-unit-xs rounded-xl shadow-lg">
+<div class="w-2.5 h-2.5 rounded-full bg-tertiary animate-ping"></div>
+<div>
+<div class="flex items-center gap-unit-2xs">
+<span class="font-headline-sm text-headline-sm text-on-surface">NearHelp</span>
+<span class="font-label-caps text-label-caps text-tertiary bg-tertiary/10 px-unit-2xs py-[1px] rounded">TACTICAL HUD</span>
+</div>
+<p class="font-telemetry-coord text-caption text-on-surface-variant">SECTOR SOMA 04 • GPS LOCK ±3m</p>
+</div>
+</div>
+<!-- Responder Mode Active Toggle Strip -->
+<div class="flex items-center gap-unit-xs bg-surface-container-low/90 backdrop-blur-md p-unit-2xs rounded-full shadow-lg">
+<button class="px-unit-md py-unit-xs rounded-full font-label-caps text-label-caps text-on-surface-variant transition-all hover:text-on-surface" id="mode-volunteer" onclick="setMode('volunteer')">
+          OBSERVER
+        </button>
+<button class="flex items-center gap-unit-xs px-unit-md py-unit-xs rounded-full bg-primary-container text-on-primary-container shadow-md font-label-caps text-label-caps transition-all" id="mode-responder" onclick="setMode('responder')">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">emergency</span>
+          RESPONDER MODE
+        </button>
+</div>
+</header>
+<!-- Main Content Triage Column -->
+<main class="w-full max-w-xl mx-auto flex flex-col gap-unit-md my-auto pt-unit-md pb-unit-md pointer-events-auto">
+<!-- Queue Status Banner -->
+<div class="flex items-center justify-between px-unit-md py-unit-xs bg-surface-container/80 backdrop-blur-md rounded-lg shadow-sm">
+<div class="flex items-center gap-unit-xs">
+<span class="material-symbols-outlined text-primary-container text-sm" style="font-variation-settings: 'FILL' 1;">sensors</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Nearby Emergency Alerts</span>
+<span class="font-caption text-caption text-on-surface-variant hidden sm:inline">(Within 1.5 km)</span>
+</div>
+<span class="font-label-caps text-label-caps bg-error-container text-on-error-container px-unit-xs py-unit-2xs rounded">
+          2 URGENT PENDING
+        </span>
+</div>
+<!-- Primary Highlighted Active Alert Card -->
+<section class="relative bg-surface-container-low/95 backdrop-blur-xl rounded-xl p-unit-lg shadow-xl flex flex-col gap-unit-md overflow-hidden transition-all duration-300" id="primary-incident-card">
+<!-- Top Signal Glow Indicator Bar -->
+<div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary-container via-error to-primary-container"></div>
+<!-- Badges & Timing Row -->
+<div class="flex items-center justify-between flex-wrap gap-unit-xs">
+<div class="flex items-center gap-unit-xs">
+<span class="flex items-center gap-1 font-label-caps text-label-caps px-unit-sm py-unit-2xs rounded-full bg-error-container text-on-error-container">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+              CRITICAL MEDICAL
+            </span>
+<span class="font-telemetry-coord text-caption text-tertiary-fixed-dim bg-surface-container px-unit-xs py-unit-2xs rounded">
+              0.4 km away
+            </span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant font-telemetry-time text-telemetry-time">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span>~2 min response</span>
+</div>
+</div>
+<!-- Incident Description -->
+<div class="flex flex-col gap-unit-2xs">
+<h2 class="font-headline-md text-headline-md text-on-surface">
+            Chest pain &amp; difficulty breathing
+          </h2>
+<div class="flex items-center gap-unit-xs text-on-surface-variant font-body-base text-body-base">
+<span class="material-symbols-outlined text-base">person</span>
+<span>Reported by John D.</span>
+<span class="text-outline">•</span>
+<span class="font-telemetry-time text-caption text-on-surface-variant">01:42 ago</span>
+</div>
+</div>
+<!-- Live Voice AI Synthesis Feed Box -->
+<div class="bg-surface-container-lowest/80 p-unit-sm rounded-lg flex flex-col gap-unit-2xs">
+<div class="flex items-center justify-between text-caption font-label-caps text-tertiary">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">mic</span>
+              LIVE DISPATCH SYNTHESIS
+            </span>
+<span class="font-telemetry-coord text-caption text-tertiary">96% CONFIDENCE</span>
+</div>
+<p class="font-body-base text-body-base text-on-surface italic">
+            “Elderly male experiencing sudden tightness in chest, conscious but labored breathing...”
+          </p>
+</div>
+<!-- Precise Geo-Anchor Coordinates -->
+<div class="flex items-center justify-between bg-surface-container/60 px-unit-sm py-unit-xs rounded-lg">
+<div class="flex items-center gap-unit-xs text-on-surface">
+<span class="material-symbols-outlined text-primary-container">near_me</span>
+<div>
+<p class="font-body-bold text-body-bold">442 Market St, Entrance B</p>
+<p class="font-telemetry-coord text-caption text-on-surface-variant">37.7891° N, 122.4014° W • FL 1 FOYER</p>
+</div>
+</div>
+<button class="bg-surface-container-high hover:bg-surface-bright px-unit-xs py-unit-2xs rounded text-on-surface font-label-caps text-label-caps flex items-center gap-1 transition-colors" onclick="pingCoordinates()">
+<span class="material-symbols-outlined text-sm">share_location</span>
+            MAP PIN
+          </button>
+</div>
+<!-- Tactical Directive Actions -->
+<div class="flex flex-col sm:flex-row items-center gap-unit-sm pt-unit-2xs">
+<!-- Big Accept & Navigate Anchor Button -->
+<button class="w-full sm:flex-1 h-14 bg-primary-container hover:bg-on-primary text-on-primary-container hover:text-surface-tint font-headline-sm text-headline-sm rounded-lg flex items-center justify-center gap-unit-xs shadow-xl transition-all duration-200 active:scale-95" id="btn-accept" onclick="acceptIncident()">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">navigation</span>
+<span>ACCEPT &amp; NAVIGATE</span>
+</button>
+<!-- Pass/Relay Secondary Action -->
+<button class="w-full sm:w-auto h-14 px-unit-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-body-bold text-body-bold rounded-lg transition-colors flex items-center justify-center gap-1" id="btn-pass" onclick="passIncident()">
+<span class="material-symbols-outlined text-lg">redo</span>
+<span>Pass to Next</span>
+</button>
+</div>
+</section>
+<!-- Secondary Queued Alert Card (Compressed Stacking View) -->
+<section class="bg-surface-container-low/85 backdrop-blur-md rounded-xl p-unit-md shadow-md flex items-center justify-between gap-unit-sm transition-all hover:bg-surface-container-low">
+<div class="flex flex-col gap-unit-2xs min-w-0">
+<div class="flex items-center gap-unit-xs flex-wrap">
+<span class="font-label-caps text-label-caps px-unit-xs py-unit-2xs rounded bg-surface-container-highest text-secondary-fixed">
+              SECURITY / WATCH
+            </span>
+<span class="font-telemetry-coord text-caption text-on-surface-variant">0.9 km away</span>
+<span class="font-telemetry-time text-caption text-on-surface-variant">• 4m ago</span>
+</div>
+<p class="font-body-bold text-body-bold text-on-surface truncate">
+            Suspicious break-in noise at garage
+          </p>
+<p class="font-caption text-caption text-on-surface-variant truncate">
+            Sector 7-B Alleyway • Units alerted: 1 standby
+          </p>
+</div>
+<button class="shrink-0 h-10 px-unit-md bg-surface-container hover:bg-surface-container-high text-secondary font-label-caps text-label-caps rounded-lg transition-colors flex items-center gap-1" onclick="toggleDetails()">
+<span>DETAILS</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</section>
+</main>
+<!-- Bottom Persistent HUD: Field Operator Profile & Readiness -->
+<footer class="w-full pointer-events-auto">
+<div class="bg-surface-container-lowest/90 backdrop-blur-md px-unit-md py-unit-sm rounded-xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-unit-sm">
+<!-- Live Vital Cluster -->
+<div class="flex items-center gap-unit-md flex-wrap">
+<div class="flex items-center gap-unit-xs">
+<span class="w-3 h-3 rounded-full bg-tertiary"></span>
+<span class="font-body-bold text-body-bold text-on-surface">Status: On Duty / Active</span>
+</div>
+<div class="h-4 w-[1px] bg-outline-variant hidden sm:block"></div>
+<div class="flex items-center gap-1 font-body-base text-caption text-on-surface-variant">
+<span class="material-symbols-outlined text-sm text-tertiary">medical_services</span>
+<span>Medical Kit Equipped</span>
+</div>
+<div class="h-4 w-[1px] bg-outline-variant hidden sm:block"></div>
+<div class="flex items-center gap-1 font-telemetry-coord text-caption text-secondary">
+<span class="material-symbols-outlined text-sm">badge</span>
+<span>Unit Res-03</span>
+</div>
+</div>
+<!-- Telemetry Heartbeat / Satellite Lock Indicator -->
+<div class="flex items-center gap-unit-sm text-on-surface-variant font-telemetry-coord text-caption">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-tertiary">wifi_tethering</span>
+<span>5G MESH • ONLINE</span>
+</div>
+<span class="text-outline">•</span>
+<span id="live-clock">18:42:09 UTC</span>
+</div>
+</div>
+</footer>
+</div>
+</div>
+<script>
+  function setMode(mode) {
+    const respBtn = document.getElementById('mode-responder');
+    const volBtn = document.getElementById('mode-volunteer');
+    if (mode === 'responder') {
+      respBtn.className = 'flex items-center gap-unit-xs px-unit-md py-unit-xs rounded-full bg-primary-container text-on-primary-container shadow-md font-label-caps text-label-caps transition-all';
+      volBtn.className = 'px-unit-md py-unit-xs rounded-full font-label-caps text-label-caps text-on-surface-variant transition-all hover:text-on-surface';
+    } else {
+      volBtn.className = 'flex items-center gap-unit-xs px-unit-md py-unit-xs rounded-full bg-secondary-container text-on-secondary-container shadow-md font-label-caps text-label-caps transition-all';
+      respBtn.className = 'px-unit-md py-unit-xs rounded-full font-label-caps text-label-caps text-on-surface-variant transition-all hover:text-on-surface';
+    }
+  }
+
+  function acceptIncident() {
+    const card = document.getElementById('primary-incident-card');
+    const btn = document.getElementById('btn-accept');
+    btn.innerHTML = '<span class="material-symbols-outlined text-2xl animate-spin">sync</span><span>ROUTING TO TARGET...</span>';
+    btn.classList.add('bg-tertiary-container', 'text-on-tertiary-container');
+    setTimeout(() => {
+      btn.innerHTML = '<span class="material-symbols-outlined text-2xl">check_circle</span><span>EN ROUTE • ETA 1m 48s</span>';
+      card.classList.add('bg-surface-container/95');
+    }, 1000);
+  }
+
+  function passIncident() {
+    const card = document.getElementById('primary-incident-card');
+    card.style.opacity = '0.4';
+    card.style.transform = 'translateX(40px)';
+    setTimeout(() => {
+      card.style.display = 'none';
+    }, 300);
+  }
+
+  function toggleDetails() {
+    alert('Displaying Incident #SEC-8891 details & nearby CCTV feeds.');
+  }
+
+  function pingCoordinates() {
+    alert('Target coordinates copied: 37.7891 N, 122.4014 W (442 Market St, Entrance B)');
+  }
+
+  // Live Telemetry Clock
+  setInterval(() => {
+    const clock = document.getElementById('live-clock');
+    if (clock) {
+      const now = new Date();
+      clock.innerText = now.toTimeString().split(' ')[0] + ' UTC';
+    }
+  }, 1000);
+</script></main></body></html>
