@@ -27,7 +27,7 @@ A full-stack emergency response system that connects people in crisis with nearb
 ### Frontend
 - **Vanilla JavaScript** (ES6+) - Core logic
 - **Leaflet.js** - Interactive mapping
-- **Socket.io Client** - Real-time updates
+- **Socket.io Client** - Real-time updates feature 
 
 ## 📋 Quick Start
 
