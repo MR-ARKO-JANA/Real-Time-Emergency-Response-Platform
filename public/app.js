@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let map, userMarker, sosMarker;
   let simulatedResponders = [];
   let responderMarkers = {};
+  let routingControl = null;
   let isBroadcasting = false;
   let isResponder = true;
   let selectedCrisis = 'medical';
@@ -54,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let userLng = -0.09;
   let activeSosId = null;
   let watchId = null;
+  let citizenWatchId = null;
   let selectedCrisisTypes = ['medical'];
 
   // ═══════════════ TAB/VIEW NAVIGATION ═══════════════
@@ -220,19 +222,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }).addTo(map);
 
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
+      citizenWatchId = navigator.geolocation.watchPosition(
         (position) => {
           userLat = position.coords.latitude;
           userLng = position.coords.longitude;
-          map.setView([userLat, userLng], 15);
+          
+          if (!isBroadcasting) {
+            map.setView([userLat, userLng], 15);
+          }
           userMarker.setLatLng([userLat, userLng]);
+
+          if (userMarker.accuracyCircle) {
+             userMarker.accuracyCircle.setLatLng([userLat, userLng]);
+             userMarker.accuracyCircle.setRadius(position.coords.accuracy || 100);
+          }
 
           // Update coordinates display
           const coordsEl = document.getElementById('map-coords');
           if (coordsEl) coordsEl.textContent = `${userLat.toFixed(4)}° N, ${userLng.toFixed(4)}° W`;
 
           const gpsEl = document.getElementById('footer-gps-accuracy');
-          if (gpsEl) gpsEl.textContent = `±${Math.round(position.coords.accuracy)}M`;
+          if (gpsEl) gpsEl.textContent = `±${Math.round(position.coords.accuracy || 0)}M`;
 
           const userMeta = JSON.parse(localStorage.getItem('user') || '{}');
           socket.emit('update_location', {
@@ -244,7 +254,8 @@ document.addEventListener('DOMContentLoaded', () => {
             skill: userMeta.role || 'citizen'
           });
         },
-        () => { /* Geolocation failed */ }
+        () => { /* Geolocation failed */ },
+        { enableHighAccuracy: true }
       );
     }
   }
@@ -518,6 +529,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const combinedType = data.types ? data.types.join(' and ') : data.type;
     generateAIGuidance(combinedType);
 
+    map.setView([userLat, userLng], 15);
+    setTimeout(() => { map.panBy([0, -120]); }, 150);
+
     map.removeLayer(userMarker);
     const sosIcon = L.divIcon({
       className: 'custom-marker',
@@ -567,6 +581,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; }
 
+    if (routingControl) {
+      map.removeControl(routingControl);
+      routingControl = null;
+    }
+
     if (sosMarker) {
       if (sosMarker.radiusInterval) clearInterval(sosMarker.radiusInterval);
       if (sosMarker.radiusLayer) map.removeLayer(sosMarker.radiusLayer);
@@ -593,6 +612,62 @@ document.addEventListener('DOMContentLoaded', () => {
     activeSosId = data.id;
     setTimeout(() => { statNotified.innerText = '12'; }, 1000);
   });
+
+  function addResponder(responder) {
+    if (!responder) return;
+    
+    const sosView = document.getElementById('view-sos-alert');
+    const trackingView = document.getElementById('view-live-tracking');
+    if (sosView) sosView.classList.remove('active');
+    if (trackingView) trackingView.classList.add('active');
+    
+    const responderDiv = document.getElementById('tracking-responder');
+    if (responderDiv) {
+      responderDiv.innerHTML = `
+        <div class="flex items-center gap-unit-md">
+          <div class="w-12 h-12 rounded-full bg-primary-container text-white flex items-center justify-center font-bold text-xl">
+            ${(responder.name || 'R')[0].toUpperCase()}
+          </div>
+          <div class="flex flex-col">
+            <span class="font-headline-sm text-on-surface font-semibold">${responder.name || 'Responder'}</span>
+            <span class="text-caption text-on-surface-variant">is on their way</span>
+          </div>
+        </div>
+      `;
+    }
+    
+    if (typeof L.Routing !== 'undefined') {
+      if (routingControl) map.removeControl(routingControl);
+      
+      routingControl = L.Routing.control({
+        waypoints: [
+          L.latLng(responder.lat || userLat, responder.lng || userLng),
+          L.latLng(userLat, userLng)
+        ],
+        routeWhileDragging: false,
+        showAlternatives: false,
+        lineOptions: {
+          styles: [{ color: '#4cd7f6', opacity: 0.9, weight: 6 }]
+        },
+        createMarker: function() { return null; },
+        fitSelectedRoutes: true
+      }).addTo(map);
+
+      routingControl.on('routesfound', function(e) {
+        const routes = e.routes;
+        if (routes && routes.length > 0) {
+          const summary = routes[0].summary;
+          const distMiles = (summary.totalDistance / 1609.34).toFixed(1);
+          const timeMins = Math.round(summary.totalTime / 60);
+          
+          const etaEl = document.getElementById('tracking-eta');
+          const distEl = document.getElementById('tracking-distance');
+          if (etaEl) etaEl.innerText = `~${timeMins} MINS`;
+          if (distEl) distEl.innerText = `${distMiles} miles away`;
+        }
+      });
+    }
+  }
 
   socket.on('responder_assigned', (data) => {
     if (data.sosId === currentSosId) addResponder(data.responder);
@@ -687,6 +762,30 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast("You have accepted the emergency!");
     openChat(sosId);
 
+    const targetMarker = responderMarkers[sosId];
+    if (targetMarker && typeof L.Routing !== 'undefined') {
+      const hud = document.getElementById('view-responder-hud');
+      if (hud) hud.classList.add('hidden');
+      const navOverlay = document.getElementById('nav-overlay');
+      if (navOverlay) navOverlay.classList.remove('hidden');
+      
+      if (routingControl) map.removeControl(routingControl);
+      
+      routingControl = L.Routing.control({
+        waypoints: [
+          L.latLng(userLat, userLng),
+          targetMarker.getLatLng()
+        ],
+        routeWhileDragging: false,
+        showAlternatives: false,
+        lineOptions: {
+          styles: [{ color: '#009eb9', opacity: 0.9, weight: 6 }]
+        },
+        createMarker: function() { return null; },
+        fitSelectedRoutes: true
+      }).addTo(map);
+    }
+
     if (navigator.geolocation) {
       watchId = navigator.geolocation.watchPosition(
         (pos) => {
@@ -701,6 +800,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (responderMarkers[sosId]) responderMarkers[sosId].closePopup();
   };
+
+  const btnFinishNav = document.getElementById('btn-finish-nav');
+  if (btnFinishNav) {
+    btnFinishNav.addEventListener('click', () => {
+      if (routingControl) {
+        map.removeControl(routingControl);
+        routingControl = null;
+      }
+      
+      const navOverlay = document.getElementById('nav-overlay');
+      if (navOverlay) navOverlay.classList.add('hidden');
+      
+      const hud = document.getElementById('view-responder-hud');
+      if (hud) hud.classList.remove('hidden');
+      
+      if (activeSosId) {
+        socket.emit('resolve_sos', { sosId: activeSosId });
+        showToast("Navigation finished. Incident resolved.");
+        activeSosId = null;
+      }
+    });
+  }
 
   socket.on('new_message', (msg) => {
     addChatMessage(msg);
@@ -745,11 +866,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   socket.on('responder_moved', (data) => {
-    const marker = responderMarkers[data.responderId];
+    const marker = data.responderId ? responderMarkers[data.responderId] : null;
     if (isBroadcasting && marker) {
       const startLatLng = marker.getLatLng();
       const endLatLng = L.latLng(data.lat, data.lng);
       if (startLatLng.distanceTo(endLatLng) > 1) marker.setLatLng(endLatLng);
+    }
+    
+    if (isBroadcasting && routingControl && data.sosId === activeSosId) {
+      routingControl.spliceWaypoints(0, 1, L.latLng(data.lat, data.lng));
     }
   });
 
