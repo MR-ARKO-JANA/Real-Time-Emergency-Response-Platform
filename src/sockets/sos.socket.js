@@ -262,6 +262,16 @@ module.exports = function (io) {
             }
         });
 
+        // 7. WebRTC Voice Call Signaling
+        socket.on('webrtc_signal', (data) => {
+            // Broadcast signal to everyone in the incident room except the sender
+            socket.to(`incident_${data.sosId}`).emit('webrtc_signal', {
+                senderId: socket.id,
+                type: data.type,
+                payload: data.payload
+            });
+        });
+
         // Handle disconnects
         socket.on('disconnect', () => {
             connectedUsers.delete(socket.id);

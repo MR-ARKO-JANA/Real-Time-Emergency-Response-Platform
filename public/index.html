@@ -23,6 +23,9 @@
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- WebRTC Audio Element -->
+  <audio id="remote-audio" autoplay playsinline hidden></audio>
   <script>
     tailwind.config = {
       darkMode: "class",
@@ -425,6 +428,12 @@
                 Waiting for responder assignment...
               </div>
             </div>
+            
+            <!-- Voice Call Actions -->
+            <button id="btn-citizen-call" class="w-full hidden h-12 bg-primary-container hover:bg-on-primary text-on-primary-container hover:text-surface-tint font-headline-sm text-headline-sm rounded-lg flex items-center justify-center gap-unit-xs shadow-xl transition-all duration-200">
+              <span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">phone_in_talk</span>
+              <span id="txt-citizen-call">Call Responder</span>
+            </button>
 
             <!-- Progress Tracker -->
             <div class="bg-surface-container-low/80 rounded-xl p-unit-md border border-surface-bright flex flex-col gap-unit-md" id="tracking-progress">
@@ -830,16 +839,26 @@
 
   <!-- ═══════════════ NAVIGATION UI OVERLAY ═══════════════ -->
   <div id="nav-overlay" class="hidden fixed top-20 left-1/2 -translate-x-1/2 z-[60] flex flex-col items-center pointer-events-auto">
-    <div class="bg-surface-container-high/90 backdrop-blur-xl px-unit-lg py-unit-md rounded-xl shadow-2xl border border-tertiary/30 flex flex-col items-center gap-unit-sm">
+    <div class="bg-surface-container-high/90 backdrop-blur-xl px-unit-lg py-unit-md rounded-xl shadow-2xl border border-tertiary/30 flex flex-col items-center gap-unit-sm w-[320px]">
       <div class="flex items-center gap-unit-xs">
         <span class="material-symbols-outlined text-tertiary animate-pulse text-[28px]">navigation</span>
-        <span class="font-headline-sm text-headline-sm text-on-surface">Navigating to Incident</span>
+        <span class="font-headline-sm text-headline-sm text-on-surface">Navigating</span>
       </div>
-      <p class="text-caption text-on-surface-variant mb-2">Follow the route on the map</p>
-      <button id="btn-finish-nav" class="w-full py-2 bg-error-container hover:bg-error-container/80 text-on-error-container rounded-lg font-body-bold text-body-bold transition-colors">
-        Finish / Resolve
-      </button>
+      <div class="flex gap-2 w-full mt-2">
+        <button id="btn-responder-call" class="flex-1 py-2 bg-primary-container hover:bg-primary-container/80 text-on-primary-container rounded-lg font-body-bold text-body-bold transition-colors flex items-center justify-center gap-1">
+          <span class="material-symbols-outlined text-[20px]">call</span>
+          <span id="txt-responder-call">Call</span>
+        </button>
+        <button id="btn-finish-nav" class="flex-1 py-2 bg-error-container hover:bg-error-container/80 text-on-error-container rounded-lg font-body-bold text-body-bold transition-colors">
+          Resolve
+        </button>
+      </div>
     </div>
+  </div>
+
+  <!-- ═══════════════ TURN BY TURN ITINERARY ═══════════════ -->
+  <div id="itinerary-container" class="hidden fixed left-4 top-24 z-[55] w-[320px] max-h-[60vh] overflow-y-auto bg-surface-container/90 backdrop-blur-xl rounded-xl shadow-2xl border border-tertiary/30 p-2 pointer-events-auto">
+    <!-- Leaflet Routing Machine will inject here -->
   </div>
 
   <!-- ═══════════════ SCRIPTS ═══════════════ -->

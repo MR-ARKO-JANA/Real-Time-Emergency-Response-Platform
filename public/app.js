@@ -49,11 +49,16 @@ document.addEventListener('DOMContentLoaded', () => {
   let responderMarkers = {};
   let routingControl = null;
   let isBroadcasting = false;
+  
+  // WebRTC State
+  let peerConnection = null;
+  let localStream = null;
   let isResponder = true;
   let selectedCrisis = 'medical';
   let userLat = 51.505;
   let userLng = -0.09;
   let activeSosId = null;
+  let currentSosId = null;
   let watchId = null;
   let citizenWatchId = null;
   let selectedCrisisTypes = ['medical'];
@@ -647,11 +652,31 @@ document.addEventListener('DOMContentLoaded', () => {
         routeWhileDragging: false,
         showAlternatives: false,
         lineOptions: {
-          styles: [{ color: '#4cd7f6', opacity: 0.9, weight: 6 }]
+          styles: [
+            { color: '#4cd7f6', opacity: 0.3, weight: 14 },
+            { color: '#009eb9', opacity: 1, weight: 6 },
+            { color: '#ffffff', opacity: 0.9, weight: 2 }
+          ]
         },
-        createMarker: function() { return null; },
+        createMarker: function(i, wp, nWps) {
+          const isStart = i === 0;
+          return L.marker(wp.latLng, {
+            icon: L.divIcon({
+              className: 'custom-route-marker',
+              html: `
+                <div class="route-label" style="background: ${isStart ? '#0566d9' : '#ff516a'}">${isStart ? 'START' : 'GOAL'}</div>
+                <div class="route-icon" style="background: ${isStart ? '#4cd7f6' : '#ff516a'}"></div>
+              `,
+              iconAnchor: [30, 45]
+            })
+          });
+        },
         fitSelectedRoutes: true
       }).addTo(map);
+
+      // Show call button for citizen
+      const callBtn = document.getElementById('btn-citizen-call');
+      if (callBtn) callBtn.classList.remove('hidden');
 
       routingControl.on('routesfound', function(e) {
         const routes = e.routes;
@@ -779,11 +804,35 @@ document.addEventListener('DOMContentLoaded', () => {
         routeWhileDragging: false,
         showAlternatives: false,
         lineOptions: {
-          styles: [{ color: '#009eb9', opacity: 0.9, weight: 6 }]
+          styles: [
+            { color: '#4cd7f6', opacity: 0.3, weight: 14 },
+            { color: '#009eb9', opacity: 1, weight: 6 },
+            { color: '#ffffff', opacity: 0.9, weight: 2 }
+          ]
         },
-        createMarker: function() { return null; },
+        createMarker: function(i, wp, nWps) {
+          const isStart = i === 0;
+          return L.marker(wp.latLng, {
+            icon: L.divIcon({
+              className: 'custom-route-marker',
+              html: `
+                <div class="route-label" style="background: ${isStart ? '#0566d9' : '#ff516a'}">${isStart ? 'START' : 'GOAL'}</div>
+                <div class="route-icon" style="background: ${isStart ? '#4cd7f6' : '#ff516a'}"></div>
+              `,
+              iconAnchor: [30, 45]
+            })
+          });
+        },
         fitSelectedRoutes: true
       }).addTo(map);
+      
+      const itineraryContainer = document.getElementById('itinerary-container');
+      if (itineraryContainer) {
+        itineraryContainer.classList.remove('hidden');
+        itineraryContainer.innerHTML = '';
+        const rContainer = routingControl.getContainer();
+        if (rContainer) itineraryContainer.appendChild(rContainer);
+      }
     }
 
     if (navigator.geolocation) {
@@ -811,6 +860,9 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const navOverlay = document.getElementById('nav-overlay');
       if (navOverlay) navOverlay.classList.add('hidden');
+      
+      const itinContainer = document.getElementById('itinerary-container');
+      if (itinContainer) itinContainer.classList.add('hidden');
       
       const hud = document.getElementById('view-responder-hud');
       if (hud) hud.classList.remove('hidden');
@@ -877,6 +929,102 @@ document.addEventListener('DOMContentLoaded', () => {
       routingControl.spliceWaypoints(0, 1, L.latLng(data.lat, data.lng));
     }
   });
+
+  // ═══════════════ WEBRTC VOICE CALLING ═══════════════
+  const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+
+  async function startVoiceCall(btnTextId) {
+    const txt = document.getElementById(btnTextId);
+    if (txt) txt.innerText = 'Connecting...';
+    
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      peerConnection = new RTCPeerConnection(rtcConfig);
+      
+      localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+      
+      peerConnection.onicecandidate = (e) => {
+        if (e.candidate) {
+          socket.emit('webrtc_signal', { sosId: currentSosId || activeSosId, type: 'candidate', payload: e.candidate });
+        }
+      };
+      
+      peerConnection.ontrack = (e) => {
+        const remoteAudio = document.getElementById('remote-audio');
+        if (remoteAudio && remoteAudio.srcObject !== e.streams[0]) {
+          remoteAudio.srcObject = e.streams[0];
+          remoteAudio.play();
+        }
+      };
+      
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+      socket.emit('webrtc_signal', { sosId: currentSosId || activeSosId, type: 'offer', payload: offer });
+      
+    } catch (err) {
+      console.error("Microphone access denied or error:", err);
+      showToast("Microphone access required for voice calls.");
+      if (txt) txt.innerText = 'Call Failed';
+    }
+  }
+
+  socket.on('webrtc_signal', async (data) => {
+    if (!peerConnection && data.type === 'offer') {
+      // We are receiving a call
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        peerConnection = new RTCPeerConnection(rtcConfig);
+        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+        
+        peerConnection.onicecandidate = (e) => {
+          if (e.candidate) {
+            socket.emit('webrtc_signal', { sosId: currentSosId || activeSosId, type: 'candidate', payload: e.candidate });
+          }
+        };
+        
+        peerConnection.ontrack = (e) => {
+          const remoteAudio = document.getElementById('remote-audio');
+          if (remoteAudio) {
+            remoteAudio.srcObject = e.streams[0];
+            remoteAudio.play();
+          }
+        };
+        
+        // Update UI
+        const citBtn = document.getElementById('txt-citizen-call');
+        const resBtn = document.getElementById('txt-responder-call');
+        if (citBtn) citBtn.innerText = 'Call Connected';
+        if (resBtn) resBtn.innerText = 'Call Connected';
+        showToast("Voice Call Connected!");
+        
+      } catch (e) {
+        return;
+      }
+    }
+    
+    if (!peerConnection) return;
+    
+    if (data.type === 'offer') {
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(data.payload));
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+      socket.emit('webrtc_signal', { sosId: currentSosId || activeSosId, type: 'answer', payload: answer });
+    } else if (data.type === 'answer') {
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(data.payload));
+      const citBtn = document.getElementById('txt-citizen-call');
+      const resBtn = document.getElementById('txt-responder-call');
+      if (citBtn) citBtn.innerText = 'Call Connected';
+      if (resBtn) resBtn.innerText = 'Call Connected';
+      showToast("Voice Call Connected!");
+    } else if (data.type === 'candidate') {
+      try {
+        await peerConnection.addIceCandidate(new RTCIceCandidate(data.payload));
+      } catch(e) {}
+    }
+  });
+
+  document.getElementById('btn-citizen-call')?.addEventListener('click', () => startVoiceCall('txt-citizen-call'));
+  document.getElementById('btn-responder-call')?.addEventListener('click', () => startVoiceCall('txt-responder-call'));
 
   // ═══════════════ AI GUIDANCE ═══════════════
   async function generateAIGuidance(type, description = '') {
