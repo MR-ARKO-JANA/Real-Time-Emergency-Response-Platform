@@ -14,6 +14,7 @@
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
 
   <!-- Fonts: Space Grotesk, Inter, JetBrains Mono -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet"/>
@@ -181,16 +182,16 @@
   <div id="map-scrim" class="fixed inset-0 z-[1] pointer-events-none bg-gradient-to-t from-surface via-surface/40 to-surface/20 transition-opacity duration-500"></div>
 
   <!-- ═══════════════ MAIN CONTENT AREA ═══════════════ -->
-  <main class="relative z-10 w-full pt-16 min-h-screen pb-14">
+  <main class="relative z-10 w-full pt-16 min-h-screen pb-14 pointer-events-none">
 
     <!-- ██████ VIEW 1: SOS ALERT (Get Help) ██████ -->
     <section id="view-sos-alert" class="view-section active">
-      <div class="flex items-center justify-center min-h-[calc(100vh-7rem)] p-4">
+      <div class="flex items-center justify-center min-h-[calc(100vh-7rem)] p-4 pointer-events-none">
         <!-- SOS Trigger Card (idle state) -->
-        <div id="idle-panel" class="w-full max-w-[420px] rounded-2xl bg-surface-container-low/90 backdrop-blur-xl p-6 sm:p-7 shadow-2xl border border-surface-container-high/50 transition-all">
+        <div id="idle-panel" class="w-full max-w-[420px] rounded-2xl bg-surface-container-low/90 backdrop-blur-xl p-6 sm:p-7 shadow-2xl border border-surface-container-high/50 transition-all pointer-events-auto">
           <div class="text-center mb-5">
             <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-on-surface mb-1 font-headline-md">What kind of help do you need?</h2>
-            <p class="text-caption font-caption text-on-surface-variant">Tap once to select, then hold to send alert</p>
+            <p class="text-caption font-caption text-on-surface-variant">Tap once to select, then tap to send alert</p>
           </div>
 
           <!-- Crisis Type Grid -->
@@ -235,9 +236,9 @@
               <span class="relative z-10 flex flex-col items-center justify-center gap-0.5">
                 <span class="flex items-center gap-2 text-base font-extrabold tracking-wider">
                   <span class="material-symbols-outlined text-[20px] animate-pulse">bolt</span>
-                  HOLD TO SEND SOS
+                  TAP TO SEND SOS
                 </span>
-                <span class="text-[11px] font-normal text-red-100 opacity-90">Press &amp; hold 2 seconds to alert nearby helpers</span>
+                <span class="text-[11px] font-normal text-red-100 opacity-90">Tap once to instantly alert nearby helpers</span>
               </span>
               <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
             </button>
@@ -260,7 +261,7 @@
         </div>
 
         <!-- Active Broadcasting Panel (hidden by default) -->
-        <div id="active-panel" class="hidden w-full max-w-xl">
+        <div id="active-panel" class="hidden w-full max-w-xl pointer-events-auto">
           <!-- Reassuring Status Badge -->
           <div class="bg-surface-container/90 backdrop-blur-2xl rounded-xl shadow-2xl p-unit-lg flex flex-col gap-unit-lg">
             <div class="relative overflow-hidden rounded-xl bg-surface-container-high p-unit-md border border-tertiary/20 flex flex-col sm:flex-row sm:items-center justify-between gap-unit-sm">
@@ -377,8 +378,8 @@
 
     <!-- ██████ VIEW 3: LIVE TRACKING & ETA ██████ -->
     <section id="view-live-tracking" class="view-section">
-      <div class="flex items-center justify-center min-h-[calc(100vh-7rem)] p-4">
-        <div class="w-full max-w-xl flex flex-col gap-unit-md">
+      <div class="flex items-center justify-center min-h-[calc(100vh-7rem)] p-4 pointer-events-none">
+        <div class="w-full max-w-xl flex flex-col gap-unit-md pointer-events-auto">
           <!-- Status Pill -->
           <div class="flex items-center justify-between px-unit-md py-unit-xs rounded-full bg-surface-container-low/90 backdrop-blur-xl shadow-lg">
             <div class="flex items-center gap-unit-xs">
@@ -483,7 +484,7 @@
 
     <!-- ██████ VIEW 5: FIRST AID GUIDES ██████ -->
     <section id="view-first-aid" class="view-section">
-      <div class="relative px-margin-mobile md:px-margin-desktop py-unit-lg flex flex-col gap-unit-xl max-w-7xl mx-auto w-full">
+      <div class="relative px-margin-mobile md:px-margin-desktop py-unit-lg flex flex-col gap-unit-xl max-w-7xl mx-auto w-full pointer-events-auto">
         <!-- Header -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-unit-md">
           <div class="flex flex-col gap-unit-2xs">
@@ -827,9 +828,24 @@
     </div>
   </footer>
 
+  <!-- ═══════════════ NAVIGATION UI OVERLAY ═══════════════ -->
+  <div id="nav-overlay" class="hidden fixed top-20 left-1/2 -translate-x-1/2 z-[60] flex flex-col items-center pointer-events-auto">
+    <div class="bg-surface-container-high/90 backdrop-blur-xl px-unit-lg py-unit-md rounded-xl shadow-2xl border border-tertiary/30 flex flex-col items-center gap-unit-sm">
+      <div class="flex items-center gap-unit-xs">
+        <span class="material-symbols-outlined text-tertiary animate-pulse text-[28px]">navigation</span>
+        <span class="font-headline-sm text-headline-sm text-on-surface">Navigating to Incident</span>
+      </div>
+      <p class="text-caption text-on-surface-variant mb-2">Follow the route on the map</p>
+      <button id="btn-finish-nav" class="w-full py-2 bg-error-container hover:bg-error-container/80 text-on-error-container rounded-lg font-body-bold text-body-bold transition-colors">
+        Finish / Resolve
+      </button>
+    </div>
+  </div>
+
   <!-- ═══════════════ SCRIPTS ═══════════════ -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
   <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
   <script src="app.js"></script>
 </body>
