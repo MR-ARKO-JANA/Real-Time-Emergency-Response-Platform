@@ -492,8 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast('Connection library failed. Live features disabled.');
     socket = { on: () => {}, emit: () => {}, id: 'mock-id' };
   }
-  let currentSosId = null;
-
+  // currentSosId already declared above
   socket.on('connect', () => {
     console.log("Connected to server via WebSocket");
     const footerDot = document.getElementById('footer-connection-dot');
