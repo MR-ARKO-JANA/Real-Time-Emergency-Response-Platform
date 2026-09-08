@@ -618,81 +618,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => { statNotified.innerText = '12'; }, 1000);
   });
 
-  function addResponder(responder) {
-    if (!responder) return;
-    
-    const sosView = document.getElementById('view-sos-alert');
-    const trackingView = document.getElementById('view-live-tracking');
-    if (sosView) sosView.classList.remove('active');
-    if (trackingView) trackingView.classList.add('active');
-    
-    const responderDiv = document.getElementById('tracking-responder');
-    if (responderDiv) {
-      responderDiv.innerHTML = `
-        <div class="flex items-center gap-unit-md">
-          <div class="w-12 h-12 rounded-full bg-primary-container text-white flex items-center justify-center font-bold text-xl">
-            ${(responder.name || 'R')[0].toUpperCase()}
-          </div>
-          <div class="flex flex-col">
-            <span class="font-headline-sm text-on-surface font-semibold">${responder.name || 'Responder'}</span>
-            <span class="text-caption text-on-surface-variant">is on their way</span>
-          </div>
-        </div>
-      `;
-    }
-    
-    if (typeof L.Routing !== 'undefined') {
-      if (routingControl) map.removeControl(routingControl);
-      
-      routingControl = L.Routing.control({
-        waypoints: [
-          L.latLng(responder.lat || userLat, responder.lng || userLng),
-          L.latLng(userLat, userLng)
-        ],
-        routeWhileDragging: false,
-        showAlternatives: false,
-        lineOptions: {
-          styles: [
-            { color: '#4cd7f6', opacity: 0.3, weight: 14 },
-            { color: '#009eb9', opacity: 1, weight: 6 },
-            { color: '#ffffff', opacity: 0.9, weight: 2 }
-          ]
-        },
-        createMarker: function(i, wp, nWps) {
-          const isStart = i === 0;
-          return L.marker(wp.latLng, {
-            icon: L.divIcon({
-              className: 'custom-route-marker',
-              html: `
-                <div class="route-label" style="background: ${isStart ? '#0566d9' : '#ff516a'}">${isStart ? 'START' : 'GOAL'}</div>
-                <div class="route-icon" style="background: ${isStart ? '#4cd7f6' : '#ff516a'}"></div>
-              `,
-              iconAnchor: [30, 45]
-            })
-          });
-        },
-        fitSelectedRoutes: true
-      }).addTo(map);
-
-      // Show call button for citizen
-      const callBtn = document.getElementById('btn-citizen-call');
-      if (callBtn) callBtn.classList.remove('hidden');
-
-      routingControl.on('routesfound', function(e) {
-        const routes = e.routes;
-        if (routes && routes.length > 0) {
-          const summary = routes[0].summary;
-          const distMiles = (summary.totalDistance / 1609.34).toFixed(1);
-          const timeMins = Math.round(summary.totalTime / 60);
-          
-          const etaEl = document.getElementById('tracking-eta');
-          const distEl = document.getElementById('tracking-distance');
-          if (etaEl) etaEl.innerText = `~${timeMins} MINS`;
-          if (distEl) distEl.innerText = `${distMiles} miles away`;
-        }
-      });
-    }
-  }
 
   socket.on('responder_assigned', (data) => {
     if (data.sosId === currentSosId) addResponder(data.responder);
@@ -1159,6 +1084,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
     responderMarkers[r.id] = marker;
     showToast(`${r.name} is responding!`);
+
+    // --- Switch to Live Tracking View ---
+    const sosView = document.getElementById('view-sos-alert');
+    const trackingView = document.getElementById('view-live-tracking');
+    if (sosView) sosView.classList.remove('active');
+    if (trackingView) trackingView.classList.add('active');
+
+    // --- Routing Control for Shortest Path Navigation ---
+    if (typeof L.Routing !== 'undefined') {
+      if (routingControl) map.removeControl(routingControl);
+      
+      routingControl = L.Routing.control({
+        waypoints: [
+          L.latLng(r.lat || userLat, r.lng || userLng),
+          L.latLng(userLat, userLng)
+        ],
+        routeWhileDragging: false,
+        showAlternatives: false,
+        lineOptions: {
+          styles: [
+            { color: '#4cd7f6', opacity: 0.3, weight: 14 },
+            { color: '#009eb9', opacity: 1, weight: 6 },
+            { color: '#ffffff', opacity: 0.9, weight: 2 }
+          ]
+        },
+        createMarker: function(i, wp, nWps) {
+          const isStart = i === 0;
+          return L.marker(wp.latLng, {
+            icon: L.divIcon({
+              className: 'custom-route-marker',
+              html: `
+                <div class="route-label" style="background: ${isStart ? '#0566d9' : '#ff516a'}">${isStart ? 'START' : 'GOAL'}</div>
+                <div class="route-icon" style="background: ${isStart ? '#4cd7f6' : '#ff516a'}"></div>
+              `,
+              iconAnchor: [30, 45]
+            })
+          });
+        },
+        fitSelectedRoutes: true
+      }).addTo(map);
+
+      // Show call button for citizen
+      const callBtn = document.getElementById('btn-citizen-call');
+      if (callBtn) callBtn.classList.remove('hidden');
+
+      routingControl.on('routesfound', function(e) {
+        const routes = e.routes;
+        if (routes && routes.length > 0) {
+          const summary = routes[0].summary;
+          const distMiles = (summary.totalDistance / 1609.34).toFixed(1);
+          const timeMins = Math.round(summary.totalTime / 60);
+          
+          const etaEl = document.getElementById('tracking-eta');
+          const distEl = document.getElementById('tracking-distance');
+          if (etaEl) etaEl.innerText = `~${timeMins} MINS`;
+          if (distEl) distEl.innerText = `${distMiles} miles away`;
+        }
+      });
+    }
   }
 
   // ═══════════════ UTILITIES ═══════════════
