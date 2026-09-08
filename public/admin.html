@@ -252,7 +252,7 @@
     <script>
         // Init Admin Map
         const map = L.map('admin-map').setView([51.505, -0.09], 13);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, className: 'map-tiles' }).addTo(map);
 
         // Request Real Geolocation for Admin Center
         if (navigator.geolocation) {

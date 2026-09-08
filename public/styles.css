@@ -15,8 +15,12 @@
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
 /* ── Leaflet Map Overrides ── */
-#map {
+#map, #admin-map {
   background: #0c0e12 !important;
+}
+
+.map-tiles {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
 }
 
 .leaflet-control-zoom {

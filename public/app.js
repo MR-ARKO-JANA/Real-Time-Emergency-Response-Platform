@@ -200,11 +200,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // CartoDB Dark Matter tiles (dark-mode friendly, deployment safe)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
-      maxZoom: 20,
-      subdomains: 'abcd',
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    // OpenStreetMap tiles with CSS inversion for dark mode (deployment safe, no API key required)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      className: 'map-tiles'
     }).addTo(map);
 
     setTimeout(() => map.invalidateSize(), 100);
