@@ -218,44 +218,35 @@
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                // 2. Sync to MongoDB
-                const res = await fetch("/api/auth/sync", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        firebaseUid: user.uid,
-                        name,
-                        email,
-                        phone,
-                        role,
-                        location
-                    })
-                });
+                // 2. Get Firebase token immediately — user is already authenticated at this point
+                const token = await user.getIdToken();
+                localStorage.setItem("token", token);
+                localStorage.setItem("user", JSON.stringify({ email: user.email, uid: user.uid, name: name, phone: phone, role: role }));
 
-                const data = await res.json();
-
-                if (res.ok) {
-                    // Auto-login: get Firebase ID token right away (user is already authenticated)
-                    const token = await user.getIdToken();
-                    localStorage.setItem("token", token);
-                    localStorage.setItem("user", JSON.stringify({ email: user.email, uid: user.uid, name: name, phone: phone, role: role }));
-                    alert("Account created successfully! Redirecting to dashboard...");
-                    window.location.href = "index.html";
-                } else if (res.status === 409) {
-                    // Account already exists in DB — still auto-login since Firebase auth succeeded
-                    const token = await user.getIdToken();
-                    localStorage.setItem("token", token);
-                    localStorage.setItem("user", JSON.stringify({ email: user.email, uid: user.uid, name: name, phone: phone, role: role }));
-                    alert(data.msg || "Account already exists. Redirecting to dashboard...");
-                    window.location.href = "index.html";
-                } else {
-                    let errorMsg = data.msg || data.error || "Unknown error";
-                    if (typeof errorMsg === 'object') errorMsg = JSON.stringify(errorMsg);
-                    if (data.details && Array.isArray(data.details)) {
-                        errorMsg = data.details.map(d => d.message).join(', ');
+                // 3. Sync to MongoDB (non-blocking — don't let sync failure stop the redirect)
+                try {
+                    const res = await fetch("/api/auth/sync", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            firebaseUid: user.uid,
+                            name,
+                            email,
+                            phone,
+                            role,
+                            location
+                        })
+                    });
+                    const data = await res.json();
+                    if (!res.ok && res.status !== 409) {
+                        console.warn("MongoDB sync issue (non-fatal):", data);
                     }
-                    alert("Account created in Firebase, but sync failed: " + errorMsg);
+                } catch (syncErr) {
+                    console.warn("MongoDB sync failed (non-fatal):", syncErr);
                 }
+
+                // 4. Always redirect to dashboard — Firebase auth is what matters
+                window.location.href = "index.html";
 
             } catch (err) {
                 console.error(err);
