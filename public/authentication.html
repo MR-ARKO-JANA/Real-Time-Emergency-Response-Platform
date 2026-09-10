@@ -235,14 +235,19 @@
                 const data = await res.json();
 
                 if (res.ok) {
-                    alert("Account created successfully!");
+                    // Auto-login: get Firebase ID token right away (user is already authenticated)
+                    const token = await user.getIdToken();
+                    localStorage.setItem("token", token);
                     localStorage.setItem("user", JSON.stringify({ email: user.email, uid: user.uid, name: name, phone: phone, role: role }));
-                    signinTab.click();
+                    alert("Account created successfully! Redirecting to dashboard...");
+                    window.location.href = "index.html";
                 } else if (res.status === 409) {
-                    // Account already exists in DB
-                    alert(data.msg || "Account already exists. Please sign in instead.");
+                    // Account already exists in DB — still auto-login since Firebase auth succeeded
+                    const token = await user.getIdToken();
+                    localStorage.setItem("token", token);
                     localStorage.setItem("user", JSON.stringify({ email: user.email, uid: user.uid, name: name, phone: phone, role: role }));
-                    signinTab.click();
+                    alert(data.msg || "Account already exists. Redirecting to dashboard...");
+                    window.location.href = "index.html";
                 } else {
                     let errorMsg = data.msg || data.error || "Unknown error";
                     if (typeof errorMsg === 'object') errorMsg = JSON.stringify(errorMsg);
