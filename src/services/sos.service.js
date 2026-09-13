@@ -1,25 +1,24 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const OpenAI = require('openai');
 const SOS = require('../models/sos.model');
 const logger = require('../loaders/logger');
 
 class SOSService {
     constructor() {
         try {
-            if (process.env.GEMINI_API_KEY) {
-                this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-                // Configuration for powerful, reliable responses
-                this.model = this.genAI.getGenerativeModel({ 
-                    model: "gemini-1.5-flash"
-                });
+            if (process.env.OPENAI_API_KEY) {
+                this.client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+                logger.info('OpenAI client initialized successfully.');
+            } else {
+                logger.warn('OPENAI_API_KEY not found. AI features will use fallback guidance.');
             }
         } catch (err) {
-            logger.error('Failed to initialize Gemini AI:', err);
+            logger.error('Failed to initialize OpenAI client:', err);
         }
     }
 
     async getAIResponse(crisisType, description) {
-        if (!this.model) {
-            logger.warn('Gemini API key missing, using fallback guidance');
+        if (!this.client) {
+            logger.warn('OpenAI client not initialized, using fallback guidance');
             return this.getFallbackGuidance(crisisType);
         }
 
@@ -42,13 +41,12 @@ class SOSService {
         Output only valid JSON, nothing else.`;
 
         try {
-            const result = await this.model.generateContent(prompt);
-            let responseText = result.response.text();
-
-            const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-                responseText = jsonMatch[0];
-            }
+            const completion = await this.client.chat.completions.create({
+                model: "gpt-4o-mini",
+                messages: [{ role: "user", content: prompt }],
+                response_format: { type: "json_object" }
+            });
+            const responseText = completion.choices[0].message.content;
             return JSON.parse(responseText);
         } catch (err) {
             logger.error('Error generating AI response:', err);
@@ -58,33 +56,26 @@ class SOSService {
 
     async getChatResponse(userQuery) {
         try {
-            // Check if model exists
-            if (!this.model) throw new Error("AI Model not initialized");
+            if (!this.client) throw new Error("OpenAI client not initialized");
 
-            const chat = this.model.startChat({
-                history: [
+            const completion = await this.client.chat.completions.create({
+                model: "gpt-4o-mini",
+                messages: [
+                    {
+                        role: "system",
+                        content: "You are NearHelp AI, a powerful, smart, and friendly assistant. You can answer general questions, say hello, and assist with any query. However, if the user mentions an emergency, prioritize safety advice. Be helpful, concise, and professional."
+                    },
                     {
                         role: "user",
-                        parts: [{ text: "You are NearHelp AI, a powerful, smart, and friendly assistant. You function exactly like Gemini or ChatGPT. You can answer general questions, say hello, and assist with any query. However, if the user mentions an emergency, prioritize safety advice. Be helpful, concise, and professional." }],
-                    },
-                    {
-                        role: "model",
-                        parts: [{ text: "Hello! I am NearHelp AI. I can help you with safety guidance, emergency protocols, or answer any general questions you have. How can I assist you today?" }],
-                    },
-                ],
+                        content: userQuery
+                    }
+                ]
             });
 
-            const result = await chat.sendMessage(userQuery);
-            return { emergencySummary: result.response.text() };
+            return { emergencySummary: completion.choices[0].message.content };
         } catch (err) {
             logger.error('Chat AI error:', err);
-            // Fallback to simple generation
-            try {
-                const result = await this.model.generateContent(userQuery);
-                return { emergencySummary: result.response.text() };
-            } catch (err2) {
-                return { emergencySummary: "I'm having a connection issue with my brain! Please try again in a moment." };
-            }
+            return { emergencySummary: "I'm having a connection issue. Please try again in a moment." };
         }
     }
 
