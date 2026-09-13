@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let responderMarkers = {};
   let routingControl = null;
   let isBroadcasting = false;
-  
+
   // WebRTC State
   let peerConnection = null;
   let localStream = null;
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
               phone: userMeta.phone,
               role: userMeta.role
             })
-          }).catch(() => {});
+          }).catch(() => { });
         }
       } catch (err) { /* Silently fail */ }
     }
@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const initial = (name || 'U').charAt(0).toUpperCase();
     const colors = ['#ff516a', '#0566d9', '#4cd7f6', '#009eb9', '#ffb2b7', '#93000a', '#004395'];
     const color = colors[name.charCodeAt(0) % colors.length];
-    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}'%3E%3Crect fill='${encodeURIComponent(color)}' rx='${size/2}' width='${size}' height='${size}'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='${size / 2.2}' font-family='Inter,Arial' font-weight='bold'%3E${initial}%3C/text%3E%3C/svg%3E`;
+    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}'%3E%3Crect fill='${encodeURIComponent(color)}' rx='${size / 2}' width='${size}' height='${size}'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='${size / 2.2}' font-family='Inter,Arial' font-weight='bold'%3E${initial}%3C/text%3E%3C/svg%3E`;
   }
 
   // ═══════════════ MAP INITIALIZATION ═══════════════
@@ -201,11 +201,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // OpenStreetMap tiles with CSS inversion for dark mode (deployment safe, no API key required)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      className: 'map-tiles'
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+      className: 'map-tiles',
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
     }).addTo(map);
+
 
     setTimeout(() => map.invalidateSize(), 100);
 
@@ -232,15 +232,15 @@ document.addEventListener('DOMContentLoaded', () => {
         (position) => {
           userLat = position.coords.latitude;
           userLng = position.coords.longitude;
-          
+
           if (!isBroadcasting) {
             map.setView([userLat, userLng], 15);
           }
           userMarker.setLatLng([userLat, userLng]);
 
           if (userMarker.accuracyCircle) {
-             userMarker.accuracyCircle.setLatLng([userLat, userLng]);
-             userMarker.accuracyCircle.setRadius(position.coords.accuracy || 100);
+            userMarker.accuracyCircle.setLatLng([userLat, userLng]);
+            userMarker.accuracyCircle.setRadius(position.coords.accuracy || 100);
           }
 
           // Update coordinates display
@@ -490,7 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
     socket = io();
   } else {
     showToast('Connection library failed. Live features disabled.');
-    socket = { on: () => {}, emit: () => {}, id: 'mock-id' };
+    socket = { on: () => { }, emit: () => { }, id: 'mock-id' };
   }
   // currentSosId already declared above
   socket.on('connect', () => {
@@ -718,9 +718,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (hud) hud.classList.add('hidden');
       const navOverlay = document.getElementById('nav-overlay');
       if (navOverlay) navOverlay.classList.remove('hidden');
-      
+
       if (routingControl) map.removeControl(routingControl);
-      
+
       routingControl = L.Routing.control({
         waypoints: [
           L.latLng(userLat, userLng),
@@ -735,7 +735,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { color: '#ffffff', opacity: 0.9, weight: 2 }
           ]
         },
-        createMarker: function(i, wp, nWps) {
+        createMarker: function (i, wp, nWps) {
           const isStart = i === 0;
           return L.marker(wp.latLng, {
             icon: L.divIcon({
@@ -750,7 +750,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         fitSelectedRoutes: true
       }).addTo(map);
-      
+
       const itineraryContainer = document.getElementById('itinerary-container');
       if (itineraryContainer) {
         itineraryContainer.classList.remove('hidden');
@@ -767,7 +767,7 @@ document.addEventListener('DOMContentLoaded', () => {
             sosId, lat: pos.coords.latitude, lng: pos.coords.longitude
           });
         },
-        () => {},
+        () => { },
         { enableHighAccuracy: true }
       );
     }
@@ -782,16 +782,16 @@ document.addEventListener('DOMContentLoaded', () => {
         map.removeControl(routingControl);
         routingControl = null;
       }
-      
+
       const navOverlay = document.getElementById('nav-overlay');
       if (navOverlay) navOverlay.classList.add('hidden');
-      
+
       const itinContainer = document.getElementById('itinerary-container');
       if (itinContainer) itinContainer.classList.add('hidden');
-      
+
       const hud = document.getElementById('view-responder-hud');
       if (hud) hud.classList.remove('hidden');
-      
+
       if (activeSosId) {
         socket.emit('resolve_sos', { sosId: activeSosId });
         showToast("Navigation finished. Incident resolved.");
@@ -849,7 +849,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const endLatLng = L.latLng(data.lat, data.lng);
       if (startLatLng.distanceTo(endLatLng) > 1) marker.setLatLng(endLatLng);
     }
-    
+
     if (isBroadcasting && routingControl && data.sosId === activeSosId) {
       routingControl.spliceWaypoints(0, 1, L.latLng(data.lat, data.lng));
     }
@@ -861,19 +861,19 @@ document.addEventListener('DOMContentLoaded', () => {
   async function startVoiceCall(btnTextId) {
     const txt = document.getElementById(btnTextId);
     if (txt) txt.innerText = 'Connecting...';
-    
+
     try {
       localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       peerConnection = new RTCPeerConnection(rtcConfig);
-      
+
       localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-      
+
       peerConnection.onicecandidate = (e) => {
         if (e.candidate) {
           socket.emit('webrtc_signal', { sosId: currentSosId || activeSosId, type: 'candidate', payload: e.candidate });
         }
       };
-      
+
       peerConnection.ontrack = (e) => {
         const remoteAudio = document.getElementById('remote-audio');
         if (remoteAudio && remoteAudio.srcObject !== e.streams[0]) {
@@ -881,11 +881,11 @@ document.addEventListener('DOMContentLoaded', () => {
           remoteAudio.play();
         }
       };
-      
+
       const offer = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offer);
       socket.emit('webrtc_signal', { sosId: currentSosId || activeSosId, type: 'offer', payload: offer });
-      
+
     } catch (err) {
       console.error("Microphone access denied or error:", err);
       showToast("Microphone access required for voice calls.");
@@ -900,13 +900,13 @@ document.addEventListener('DOMContentLoaded', () => {
         localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         peerConnection = new RTCPeerConnection(rtcConfig);
         localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-        
+
         peerConnection.onicecandidate = (e) => {
           if (e.candidate) {
             socket.emit('webrtc_signal', { sosId: currentSosId || activeSosId, type: 'candidate', payload: e.candidate });
           }
         };
-        
+
         peerConnection.ontrack = (e) => {
           const remoteAudio = document.getElementById('remote-audio');
           if (remoteAudio) {
@@ -914,21 +914,21 @@ document.addEventListener('DOMContentLoaded', () => {
             remoteAudio.play();
           }
         };
-        
+
         // Update UI
         const citBtn = document.getElementById('txt-citizen-call');
         const resBtn = document.getElementById('txt-responder-call');
         if (citBtn) citBtn.innerText = 'Call Connected';
         if (resBtn) resBtn.innerText = 'Call Connected';
         showToast("Voice Call Connected!");
-        
+
       } catch (e) {
         return;
       }
     }
-    
+
     if (!peerConnection) return;
-    
+
     if (data.type === 'offer') {
       await peerConnection.setRemoteDescription(new RTCSessionDescription(data.payload));
       const answer = await peerConnection.createAnswer();
@@ -944,7 +944,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (data.type === 'candidate') {
       try {
         await peerConnection.addIceCandidate(new RTCIceCandidate(data.payload));
-      } catch(e) {}
+      } catch (e) { }
     }
   });
 
@@ -1094,7 +1094,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Routing Control for Shortest Path Navigation ---
     if (typeof L.Routing !== 'undefined') {
       if (routingControl) map.removeControl(routingControl);
-      
+
       routingControl = L.Routing.control({
         waypoints: [
           L.latLng(r.lat || userLat, r.lng || userLng),
@@ -1109,7 +1109,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { color: '#ffffff', opacity: 0.9, weight: 2 }
           ]
         },
-        createMarker: function(i, wp, nWps) {
+        createMarker: function (i, wp, nWps) {
           const isStart = i === 0;
           return L.marker(wp.latLng, {
             icon: L.divIcon({
@@ -1129,13 +1129,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const callBtn = document.getElementById('btn-citizen-call');
       if (callBtn) callBtn.classList.remove('hidden');
 
-      routingControl.on('routesfound', function(e) {
+      routingControl.on('routesfound', function (e) {
         const routes = e.routes;
         if (routes && routes.length > 0) {
           const summary = routes[0].summary;
           const distMiles = (summary.totalDistance / 1609.34).toFixed(1);
           const timeMins = Math.round(summary.totalTime / 60);
-          
+
           const etaEl = document.getElementById('tracking-eta');
           const distEl = document.getElementById('tracking-distance');
           if (etaEl) etaEl.innerText = `~${timeMins} MINS`;
@@ -1226,7 +1226,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btnMicToggle.style.borderColor = '';
       micText.innerText = 'Enable Voice Trigger';
       if (micDot) { micDot.style.background = '#ff516a'; micDot.style.animation = 'none'; }
-      try { recognition.stop(); } catch (err) {}
+      try { recognition.stop(); } catch (err) { }
     }
   }
 
@@ -1249,7 +1249,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     recognition.onend = () => {
       isRecognitionRunning = false;
-      if (isListening) { try { recognition.start(); } catch (e) {} }
+      if (isListening) { try { recognition.start(); } catch (e) { } }
     };
 
     btnMicToggle.addEventListener('click', () => setMicState(!isListening));
@@ -1257,7 +1257,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const startOnGesture = () => {
       if (isListening && !isRecognitionRunning) {
-        try { recognition.start(); } catch (e) {}
+        try { recognition.start(); } catch (e) { }
       }
     };
     document.addEventListener('click', startOnGesture, { once: true });
@@ -1315,7 +1315,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ═══════════════ FIRST AID: METRONOME ═══════════════
-  (function() {
+  (function () {
     let isPlaying = false;
     let intervalId = null;
     let audioCtx = null;
@@ -1354,7 +1354,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    toggleBtn.addEventListener('click', function() {
+    toggleBtn.addEventListener('click', function () {
       if (isPlaying) {
         clearInterval(intervalId);
         isPlaying = false;
@@ -1371,7 +1371,7 @@ document.addEventListener('DOMContentLoaded', () => {
   })();
 
   // ═══════════════ FIRST AID: VOICE COACH ═══════════════
-  (function() {
+  (function () {
     const voiceBtn = document.getElementById('voice-coach-btn');
     const voiceLabel = document.getElementById('voice-coach-label');
     const voiceIcon = document.getElementById('voice-coach-icon');
@@ -1379,7 +1379,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!voiceBtn) return;
 
-    voiceBtn.addEventListener('click', function() {
+    voiceBtn.addEventListener('click', function () {
       if ('speechSynthesis' in window) {
         if (isSpeaking) {
           window.speechSynthesis.cancel();
@@ -1392,7 +1392,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const utterance = new SpeechSynthesisUtterance(text);
           utterance.rate = 0.95;
           utterance.pitch = 1.0;
-          utterance.onend = function() {
+          utterance.onend = function () {
             isSpeaking = false;
             if (voiceLabel) voiceLabel.textContent = 'Start Spoken Guidance';
             if (voiceIcon) voiceIcon.textContent = 'volume_up';
