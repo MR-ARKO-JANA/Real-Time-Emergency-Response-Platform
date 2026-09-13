@@ -9,7 +9,7 @@ class SOSService {
                 this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
                 // Configuration for powerful, reliable responses
                 this.model = this.genAI.getGenerativeModel({ 
-                    model: "gemini-1.5-flash-latest"
+                    model: "gemini-1.5-flash"
                 });
             }
         } catch (err) {
