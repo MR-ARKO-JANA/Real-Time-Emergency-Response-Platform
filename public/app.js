@@ -63,6 +63,233 @@ document.addEventListener('DOMContentLoaded', () => {
   let citizenWatchId = null;
   let selectedCrisisTypes = ['medical'];
 
+  // ═══════════════ SOS ALERT SIREN SYSTEM (Web Audio API) ═══════════════
+  let sirenAudioCtx = null;
+  let sirenOscillator = null;
+  let sirenGainNode = null;
+  let sirenLfo = null;
+  let sirenPlaying = false;
+
+  function startSosSiren() {
+    if (sirenPlaying) return;
+    try {
+      sirenAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (sirenAudioCtx.state === 'suspended') sirenAudioCtx.resume();
+
+      // Main oscillator — siren tone
+      sirenOscillator = sirenAudioCtx.createOscillator();
+      sirenOscillator.type = 'sawtooth';
+      sirenOscillator.frequency.setValueAtTime(600, sirenAudioCtx.currentTime);
+
+      // LFO to modulate the pitch for siren effect
+      sirenLfo = sirenAudioCtx.createOscillator();
+      sirenLfo.type = 'sine';
+      sirenLfo.frequency.setValueAtTime(2.5, sirenAudioCtx.currentTime); // 2.5 Hz wah-wah
+
+      const lfoGain = sirenAudioCtx.createGain();
+      lfoGain.gain.setValueAtTime(250, sirenAudioCtx.currentTime); // ±250 Hz modulation
+
+      sirenLfo.connect(lfoGain);
+      lfoGain.connect(sirenOscillator.frequency);
+
+      // Volume control
+      sirenGainNode = sirenAudioCtx.createGain();
+      sirenGainNode.gain.setValueAtTime(0, sirenAudioCtx.currentTime);
+      // Fade in over 0.3s
+      sirenGainNode.gain.linearRampToValueAtTime(0.18, sirenAudioCtx.currentTime + 0.3);
+
+      // Add a tiny bit of distortion for urgency
+      const shaper = sirenAudioCtx.createWaveShaper();
+      const curve = new Float32Array(256);
+      for (let i = 0; i < 256; i++) {
+        const x = (i * 2) / 256 - 1;
+        curve[i] = (Math.PI + 200) * x / (Math.PI + 200 * Math.abs(x));
+      }
+      shaper.curve = curve;
+      shaper.oversample = '4x';
+
+      sirenOscillator.connect(shaper);
+      shaper.connect(sirenGainNode);
+      sirenGainNode.connect(sirenAudioCtx.destination);
+
+      sirenOscillator.start();
+      sirenLfo.start();
+      sirenPlaying = true;
+    } catch (e) {
+      console.error('Failed to start SOS siren:', e);
+    }
+  }
+
+  function stopSosSiren() {
+    if (!sirenPlaying) return;
+    try {
+      if (sirenGainNode) {
+        // Fade out over 0.2s
+        sirenGainNode.gain.linearRampToValueAtTime(0, sirenAudioCtx.currentTime + 0.2);
+      }
+      setTimeout(() => {
+        if (sirenOscillator) { try { sirenOscillator.stop(); } catch(e){} }
+        if (sirenLfo) { try { sirenLfo.stop(); } catch(e){} }
+        if (sirenAudioCtx) { try { sirenAudioCtx.close(); } catch(e){} }
+        sirenOscillator = null;
+        sirenLfo = null;
+        sirenGainNode = null;
+        sirenAudioCtx = null;
+      }, 250);
+    } catch(e) {}
+    sirenPlaying = false;
+  }
+
+  // ═══════════════ SOS INCOMING MODAL CONTROLLER ═══════════════
+  const sosAlertQueue = []; // Queue of incoming SOS events
+  let currentModalSos = null; // Currently displayed SOS in modal
+
+  const sosModal = document.getElementById('sos-incoming-modal');
+  const sosModalTitle = document.getElementById('sos-modal-title');
+  const sosModalSubtitle = document.getElementById('sos-modal-subtitle');
+  const sosModalIcon = document.getElementById('sos-modal-icon');
+  const sosModalTypeChip = document.getElementById('sos-modal-type-chip');
+  const sosModalDistChip = document.getElementById('sos-modal-distance-chip');
+  const sosModalPriorityChip = document.getElementById('sos-modal-priority-chip');
+  const sosModalChips = document.getElementById('sos-modal-chips');
+  const sosQueueBadge = document.getElementById('sos-queue-badge');
+  const sosQueueCount = document.getElementById('sos-queue-count');
+  const btnSosAccept = document.getElementById('btn-sos-modal-accept');
+  const btnSosDismiss = document.getElementById('btn-sos-modal-dismiss');
+
+  const crisisIcons = {
+    medical: 'cardiology', health: 'cardiology', fire: 'local_fire_department',
+    security: 'shield', police: 'shield', mechanic: 'build', other: 'warning'
+  };
+
+  const crisisLabels = {
+    medical: 'MEDICAL EMERGENCY', health: 'HEALTH EMERGENCY',
+    fire: 'FIRE EMERGENCY', security: 'SECURITY ALERT',
+    police: 'POLICE ALERT', mechanic: 'ROADSIDE ASSIST', other: 'EMERGENCY'
+  };
+
+  function showSosModal(sosData) {
+    currentModalSos = sosData;
+    const type = (sosData.type || 'other').toLowerCase();
+
+    // Update icon
+    if (sosModalIcon) sosModalIcon.textContent = crisisIcons[type] || 'emergency';
+
+    // Update title
+    if (sosModalTitle) sosModalTitle.textContent = crisisLabels[type] || 'Emergency Nearby';
+
+    // Update subtitle
+    const desc = sosData.description || 'A citizen needs immediate help in your area';
+    if (sosModalSubtitle) sosModalSubtitle.textContent = desc;
+
+    // Update type chip
+    if (sosModalTypeChip) {
+      sosModalTypeChip.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px;">${crisisIcons[type] || 'emergency'}</span> ${type.toUpperCase()}`;
+    }
+
+    // Update distance chip
+    if (sosModalDistChip) {
+      const dist = getDistanceBetween(userLat, userLng, sosData.lat, sosData.lng);
+      let distLabel = 'Nearby';
+      if (dist < 500) distLabel = `${Math.round(dist)}m away`;
+      else if (dist < 1000) distLabel = `${(dist / 1000).toFixed(1)}km away`;
+      else distLabel = `${(dist / 1000).toFixed(1)}km away`;
+      sosModalDistChip.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px;">near_me</span> ${distLabel}`;
+    }
+
+    // Update priority chip
+    if (sosModalPriorityChip) {
+      const pLabel = sosData.priority === 1 ? 'P1 — Specialist' : sosData.priority === 2 ? 'P2 — Helper' : 'P3 — Global';
+      sosModalPriorityChip.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px;">priority_high</span> ${pLabel}`;
+    }
+
+    // Voice badge
+    const existingVoiceChip = sosModalChips.querySelector('.sos-info-chip.voice');
+    if (existingVoiceChip) existingVoiceChip.remove();
+    if (sosData.isVoice) {
+      const voiceChip = document.createElement('span');
+      voiceChip.className = 'sos-info-chip voice';
+      voiceChip.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px;">mic</span> VOICE TRIGGERED';
+      sosModalChips.appendChild(voiceChip);
+    }
+
+    // Queue badge
+    updateQueueBadge();
+
+    // Show modal + start siren
+    sosModal.classList.add('active');
+    startSosSiren();
+  }
+
+  function hideSosModal() {
+    sosModal.classList.remove('active');
+    stopSosSiren();
+    currentModalSos = null;
+  }
+
+  function updateQueueBadge() {
+    if (sosAlertQueue.length > 0) {
+      sosQueueBadge.classList.add('visible');
+      sosQueueCount.textContent = `+${sosAlertQueue.length} more`;
+    } else {
+      sosQueueBadge.classList.remove('visible');
+    }
+  }
+
+  function showNextQueuedSos() {
+    if (sosAlertQueue.length > 0) {
+      const nextSos = sosAlertQueue.shift();
+      showSosModal(nextSos);
+    } else {
+      hideSosModal();
+    }
+  }
+
+  // Distance helper for modal
+  function getDistanceBetween(lat1, lon1, lat2, lon2) {
+    const R = 6371e3;
+    const rad = Math.PI / 180;
+    const dLat = (lat2 - lat1) * rad;
+    const dLon = (lon2 - lon1) * rad;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  // Accept from modal
+  if (btnSosAccept) {
+    btnSosAccept.addEventListener('click', () => {
+      if (!currentModalSos) return;
+      const sosId = currentModalSos.id;
+      hideSosModal();
+      // Also add to HUD for tracking
+      addHudIncident(currentModalSos);
+      // Trigger the global accept
+      window.acceptEmergency(sosId);
+      // Show next queued if any
+      if (sosAlertQueue.length > 0) {
+        setTimeout(() => showNextQueuedSos(), 500);
+      }
+    });
+  }
+
+  // Dismiss from modal
+  if (btnSosDismiss) {
+    btnSosDismiss.addEventListener('click', () => {
+      if (currentModalSos) {
+        // Still add to HUD queue so responder can act later
+        addHudIncident(currentModalSos);
+      }
+      // Show next queued or close
+      if (sosAlertQueue.length > 0) {
+        const nextSos = sosAlertQueue.shift();
+        showSosModal(nextSos);
+      } else {
+        hideSosModal();
+      }
+    });
+  }
+
+
   // ═══════════════ TAB/VIEW NAVIGATION ═══════════════
   const navTabs = document.querySelectorAll('.nav-tab');
   const mobileTabs = document.querySelectorAll('.mobile-tab');
@@ -633,10 +860,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     showToast(`${label}: ${data.type}${voiceMeta}`);
 
-    // Add to HUD incidents
-    addHudIncident(data);
-
-    // Map marker
+    // Map marker (always add regardless of modal)
     const sIcon = L.divIcon({
       className: 'custom-marker',
       html: `<div class="marker-sos" style="width:32px;height:32px;"><div class="marker-sos-inner" style="width:12px;height:12px;"></div></div>`
@@ -660,6 +884,16 @@ document.addEventListener('DOMContentLoaded', () => {
     `, { closeButton: false }).openPopup();
 
     responderMarkers[data.id] = marker;
+
+    // ─── ALERT SIREN + FULL-SCREEN MODAL ───
+    // If modal is already showing, queue this SOS
+    if (currentModalSos) {
+      sosAlertQueue.push(data);
+      updateQueueBadge();
+    } else {
+      // Show the dramatic full-screen alert modal + siren
+      showSosModal(data);
+    }
   });
 
   // HUD Incident Card Builder
@@ -708,6 +942,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   window.acceptEmergency = function (sosId) {
+    // Stop siren + close modal if it was triggered from there
+    stopSosSiren();
+    if (sosModal.classList.contains('active') && currentModalSos && currentModalSos.id === sosId) {
+      hideSosModal();
+    }
+
     socket.emit('accept_sos', { sosId });
     showToast("You have accepted the emergency!");
     openChat(sosId);

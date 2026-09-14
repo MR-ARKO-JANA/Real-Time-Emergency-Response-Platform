@@ -878,6 +878,67 @@
     <!-- Leaflet Routing Machine will inject here -->
   </div>
 
+  <!-- ═══════════════ SOS INCOMING ALERT MODAL (for responders) ═══════════════ -->
+  <div id="sos-incoming-modal">
+    <div class="sos-modal-backdrop"></div>
+    <div class="sos-modal-card">
+      <!-- Queue Badge (shown when multiple SOS are pending) -->
+      <span class="sos-queue-badge" id="sos-queue-badge">
+        <span class="material-symbols-outlined" style="font-size:12px;">queue</span>
+        <span id="sos-queue-count">+0 more</span>
+      </span>
+
+      <!-- Radar Ring Animation -->
+      <div class="sos-radar-ring">
+        <div class="ring-pulse"></div>
+        <div class="ring-pulse"></div>
+        <div class="ring-pulse"></div>
+        <div class="ring-core">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;" id="sos-modal-icon">emergency</span>
+        </div>
+      </div>
+
+      <!-- Alert Label -->
+      <div class="sos-modal-label">
+        <span class="dot-blink"></span>
+        INCOMING SOS ALERT
+        <span class="dot-blink"></span>
+      </div>
+
+      <!-- Title & Subtitle -->
+      <h2 class="sos-modal-title" id="sos-modal-title">Emergency Nearby</h2>
+      <p class="sos-modal-subtitle" id="sos-modal-subtitle">A citizen needs immediate help in your area</p>
+
+      <!-- Info Chips -->
+      <div class="sos-info-row" id="sos-modal-chips">
+        <span class="sos-info-chip type" id="sos-modal-type-chip">
+          <span class="material-symbols-outlined" style="font-size:14px;">cardiology</span>
+          MEDICAL
+        </span>
+        <span class="sos-info-chip distance" id="sos-modal-distance-chip">
+          <span class="material-symbols-outlined" style="font-size:14px;">near_me</span>
+          Nearby
+        </span>
+        <span class="sos-info-chip priority" id="sos-modal-priority-chip">
+          <span class="material-symbols-outlined" style="font-size:14px;">priority_high</span>
+          P1
+        </span>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="sos-modal-actions">
+        <button class="btn-sos-accept" id="btn-sos-modal-accept">
+          <span class="material-symbols-outlined" style="font-size:22px; font-variation-settings: 'FILL' 1;">navigation</span>
+          ACCEPT & RESPOND
+        </button>
+        <button class="btn-sos-dismiss" id="btn-sos-modal-dismiss">
+          <span class="material-symbols-outlined" style="font-size:16px;">close</span>
+          Dismiss this alert
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══════════════ SCRIPTS ═══════════════ -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
