@@ -131,7 +131,6 @@ module.exports = function (io) {
 
                 targetedResponders.sort((a, b) => (a.priority - b.priority) || (a.distance - b.distance));
 
-                targetedResponders.forEach(r => {
                     io.to(r.sId).emit('new_sos', {
                         ...sosEvent,
                         priority: r.priority,
@@ -153,16 +152,17 @@ module.exports = function (io) {
                     }
                 }
 
+                const emergencyNumber = process.env.EMERGENCY_CONTACT_NUMBER || "7478435239";
                 crisisTypes.forEach(type => {
                     socket.emit('ai_automated_call', {
                         type: type,
-                        number: "7478435239",
+                        number: emergencyNumber,
                         location: [data.lat, data.lng],
-                        message: `AI Action: Contacting Emergency ${type.toUpperCase()} Services at 7478435239...`
+                        message: `AI Action: Contacting Emergency ${type.toUpperCase()} Services at ${emergencyNumber}...`
                     });
 
                     io.emit('system_message', {
-                        text: `NearHelp AI is coordinating with ${type.toUpperCase()} services (7478435239).`,
+                        text: `NearHelp AI is coordinating with ${type.toUpperCase()} services (${emergencyNumber}).`,
                         type: 'ai'
                     });
                 });
