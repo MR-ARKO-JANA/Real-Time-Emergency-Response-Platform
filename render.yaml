@@ -1,6 +1,23 @@
-services:
+﻿services:
   - type: web
     name: emergency-response-platform
     env: node
     plan: free
     branch: main
+    buildCommand: npm ci
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: EMERGENCY_CONTACT_NUMBER
+        sync: false
+      - key: CLIENT_URL
+        sync: false
