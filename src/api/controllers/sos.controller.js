@@ -19,7 +19,7 @@ exports.getGuidance = async (req, res) => {
 exports.notifyEmergencyServices = async (req, res) => {
     try {
         const { crisisType, location, number } = req.body;
-        const targetNumber = number || "7478435239";
+        const targetNumber = number || process.env.EMERGENCY_CONTACT_NUMBER || "7478435239";
 
         return res.status(200).json({ success: true, contacted: targetNumber });
     } catch (err) {
