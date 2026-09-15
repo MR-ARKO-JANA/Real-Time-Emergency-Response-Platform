@@ -1,4 +1,5 @@
 const admin = require('../../config/firebase-admin');
+const logger = require('../../loaders/logger');
 
 module.exports = async function (req, res, next) {
     // Get token from header (format: Bearer <token>)
@@ -22,7 +23,7 @@ module.exports = async function (req, res, next) {
 
         next();
     } catch (err) {
-        console.error('Firebase Auth Error:', err);
+        logger.error('Firebase Auth Error:', err);
         res.status(401).json({ message: 'Token is not valid' });
     }
 };
