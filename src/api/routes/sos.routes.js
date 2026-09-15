@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const sosController = require('../controllers/sos.controller');
 const { validateSOSGuidance } = require('../middlewares/validation.middleware');
+const authMiddleware = require('../middlewares/auth.middleware');
 
 /**
  * @openapi
@@ -40,6 +41,6 @@ router.post('/ai-guidance', validateSOSGuidance, sosController.getGuidance);
  *       200:
  *         description: List of alerts
  */
-router.get('/alerts', sosController.getAllSos);
+router.get('/alerts', authMiddleware, sosController.getAllSos);
 
 module.exports = router;
