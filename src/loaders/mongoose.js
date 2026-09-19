@@ -17,7 +17,7 @@ module.exports = async () => {
         }
     } catch (error) {
         logger.warn('MongoDB Atlas connection failed. Error details: ' + error.message);
-        console.error(error);
+        logger.error('MongoDB Atlas connection error details:', { message: error.message });
         logger.warn('Falling back to local MongoDB...');
     }
 

@@ -28,8 +28,10 @@ services:
       NODE_ENV: production
       PORT: 3000
       MONGO_URI: mongodb://admin:password123@mongodb:27017/nearhelp?authSource=admin
-      GEMINI_API_KEY: ${GEMINI_API_KEY}
-      ALLOWED_ORIGINS: http://localhost:3000
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      FIREBASE_SERVICE_ACCOUNT: ${FIREBASE_SERVICE_ACCOUNT}
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:3000}
+      EMERGENCY_CONTACT_NUMBER: ${EMERGENCY_CONTACT_NUMBER:-112}
     depends_on:
       - mongodb
     networks:

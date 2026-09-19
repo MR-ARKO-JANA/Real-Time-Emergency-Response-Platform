@@ -7,7 +7,7 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
+# Install production dependencies only
 RUN npm ci --only=production
 
 # Copy application code
@@ -16,9 +16,9 @@ COPY . .
 # Set production environment
 ENV NODE_ENV=production
 
-# Cloud Run injects PORT environment variable, 
-# but we expose it for local testing/documentation.
-EXPOSE 8080
+# PORT is injected by the cloud platform (Render: 10000, Docker local: 3000).
+# We expose 3000 as a default for local docker-compose usage.
+EXPOSE 3000
 
 # Start application
 CMD ["npm", "start"]

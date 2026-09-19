@@ -2,6 +2,7 @@ const SOS = require('../models/sos.model');
 const User = require('../models/user.model');
 const mongoose = require('mongoose');
 const sosService = require('../services/sos.service');
+const logger = require('../loaders/logger');
 
 // In-Memory State for active fast-tracking, DB is for persistence
 const activeSOS = new Map(); // id -> sos payload
@@ -60,7 +61,7 @@ module.exports = function (io) {
             if (data.isVoice) {
                 const conf = data.confidence != null ? ` [conf=${(data.confidence * 100).toFixed(0)}%]` : '';
                 const urg = data.urgency ? ` [urgency=${data.urgency.toUpperCase()}]` : '';
-                console.log(`[VOICE SOS] Automatic ${data.type.toUpperCase()} trigger activated${conf}${urg}: ${data.description}`);
+                logger.info(`[VOICE SOS] Automatic ${data.type.toUpperCase()} trigger activated${conf}${urg}: ${data.description}`);
             }
             const sosEvent = {
                 id: `SOS-${Date.now()}`,
@@ -153,17 +154,20 @@ module.exports = function (io) {
                     }
                 }
 
-                const emergencyNumber = process.env.EMERGENCY_CONTACT_NUMBER || "7478435239";
+                // NOTE: This emits a UI notification to the broadcaster only.
+                // NearHelp does NOT automatically contact external emergency services.
+                // Users must call 112 directly for official dispatch.
+                const emergencyNumber = process.env.EMERGENCY_CONTACT_NUMBER || "112";
                 crisisTypes.forEach(type => {
                     socket.emit('ai_automated_call', {
                         type: type,
                         number: emergencyNumber,
                         location: [data.lat, data.lng],
-                        message: `AI Action: Contacting Emergency ${type.toUpperCase()} Services at ${emergencyNumber}...`
+                        message: `NearHelp has notified nearby responders for ${type.toUpperCase()}. Please also dial ${emergencyNumber} for official emergency services.`
                     });
 
                     io.emit('system_message', {
-                        text: `NearHelp AI is coordinating with ${type.toUpperCase()} services (${emergencyNumber}).`,
+                        text: `NearHelp is coordinating nearby responders for ${type.toUpperCase()} emergency. Dial ${emergencyNumber} for official dispatch.`,
                         type: 'ai'
                     });
                 });
@@ -176,7 +180,13 @@ module.exports = function (io) {
 
         // 3. Resolve SOS
         socket.on('resolve_sos', async (data) => {
-            if (activeSOS.has(data.sosId)) {
+            const event = activeSOS.get(data.sosId);
+            if (event) {
+                // Only the original broadcaster can resolve their own SOS
+                if (event.broadcasterId !== socket.id) {
+                    socket.emit('error_msg', { message: 'Unauthorized: Only the person who triggered this SOS can resolve it.' });
+                    return;
+                }
                 socket.broadcast.emit('sos_resolved', { sosId: data.sosId });
                 io.to(`incident_${data.sosId}`).emit('chat_closed', { sosId: data.sosId });
                 activeSOS.delete(data.sosId);
@@ -191,6 +201,13 @@ module.exports = function (io) {
                 const user = connectedUsers.get(socket.id);
 
                 if (user) {
+                    // Deduplication: prevent same responder from accepting twice
+                    const alreadyAccepted = event.responders.some(r => r.id === user.id);
+                    if (alreadyAccepted) {
+                        socket.emit('error_msg', { message: 'You have already accepted this SOS.' });
+                        return;
+                    }
+
                     socket.join(`incident_${data.sosId}`);
                     const responderData = {
                         id: user.id,
@@ -208,7 +225,7 @@ module.exports = function (io) {
                     if (event.crisisTypes && event.crisisTypes.length > 1) {
                         const otherType = event.crisisTypes.find(t => t.toLowerCase() !== (user.skill || '').toLowerCase()) || event.crisisTypes[1];
                         io.to(event.broadcasterId).emit('system_message', {
-                            text: `AI is handling remaining issues. Contacting ${otherType.toUpperCase()} services...`,
+                            text: `Responder accepted. For remaining issues, please also contact ${otherType.toUpperCase()} services directly.`,
                             type: 'ai'
                         });
                     }
