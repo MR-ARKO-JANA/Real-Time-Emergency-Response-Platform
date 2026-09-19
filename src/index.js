@@ -2,6 +2,19 @@ require('dotenv').config();
 const startServer = require('./app');
 const logger = require('./loaders/logger');
 
+// --- Global Crash Handlers ---
+// Catches synchronous errors thrown outside of any try/catch
+process.on('uncaughtException', (err) => {
+    logger.error('UNCAUGHT EXCEPTION - Shutting down...', { message: err.message, stack: err.stack });
+    process.exit(1);
+});
+
+// Catches unhandled Promise rejections (async errors)
+process.on('unhandledRejection', (reason, promise) => {
+    logger.error('UNHANDLED PROMISE REJECTION - Shutting down...', { reason });
+    process.exit(1);
+});
+
 async function init() {
     try {
         const { server } = await startServer();

@@ -131,6 +131,7 @@ module.exports = function (io) {
 
                 targetedResponders.sort((a, b) => (a.priority - b.priority) || (a.distance - b.distance));
 
+                targetedResponders.forEach(r => {
                     io.to(r.sId).emit('new_sos', {
                         ...sosEvent,
                         priority: r.priority,

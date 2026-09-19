@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
 const path = require('path');
+const mongoSanitize = require('express-mongo-sanitize');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 const logger = require('./logger');
@@ -54,9 +55,17 @@ module.exports = async ({ app }) => {
 
     // Body Parser
     app.use(express.json());
+
+    // NoSQL Injection Protection
+    app.use(mongoSanitize());
     
     // Static Files
     app.use(express.static(path.join(process.cwd(), 'public')));
+
+    // Health Check Endpoint (for Docker/CI/CD)
+    app.get('/health', (req, res) => {
+        res.status(200).json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
+    });
 
     // Swagger
     const swaggerOptions = {

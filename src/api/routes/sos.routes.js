@@ -3,6 +3,7 @@ const router = express.Router();
 const sosController = require('../controllers/sos.controller');
 const { validateSOSGuidance } = require('../middlewares/validation.middleware');
 const authMiddleware = require('../middlewares/auth.middleware');
+const { aiLimiter, sosLimiter } = require('../middlewares/security.middleware');
 
 /**
  * @openapi
@@ -29,7 +30,7 @@ const authMiddleware = require('../middlewares/auth.middleware');
  *       400:
  *         description: Invalid input
  */
-router.post('/ai-guidance', validateSOSGuidance, sosController.getGuidance);
+router.post('/ai-guidance', aiLimiter, validateSOSGuidance, sosController.getGuidance);
 
 /**
  * @openapi
@@ -41,6 +42,6 @@ router.post('/ai-guidance', validateSOSGuidance, sosController.getGuidance);
  *       200:
  *         description: List of alerts
  */
-router.get('/alerts', authMiddleware, sosController.getAllSos);
+router.get('/alerts', sosLimiter, authMiddleware, sosController.getAllSos);
 
 module.exports = router;

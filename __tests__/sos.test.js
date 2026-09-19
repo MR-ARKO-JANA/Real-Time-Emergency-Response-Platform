@@ -1,5 +1,12 @@
 const request = require('supertest');
 const express = require('express');
+
+// Mock auth middleware before requiring routes
+jest.mock('../src/api/middlewares/auth.middleware', () => (req, res, next) => {
+    req.user = { id: 'test_admin_id' };
+    next();
+});
+
 const sosRoutes = require('../src/api/routes/sos.routes');
 const SOS = require('../src/models/sos.model');
 

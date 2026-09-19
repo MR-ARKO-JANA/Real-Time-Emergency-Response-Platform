@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/auth.controller');
 const { validateRegister, validateUpdateProfile } = require('../middlewares/validation.middleware');
+const { authLimiter } = require('../middlewares/security.middleware');
 
 /**
  * @openapi
@@ -37,8 +38,8 @@ const { validateRegister, validateUpdateProfile } = require('../middlewares/vali
  *       400:
  *         description: Validation error
  */
-router.post('/sync', validateRegister, authController.syncUser);
-router.get('/profile/:uid', authController.getProfile);
-router.put('/profile/:uid', validateUpdateProfile, authController.updateProfile);
+router.post('/sync', authLimiter, validateRegister, authController.syncUser);
+router.get('/profile/:uid', authLimiter, authController.getProfile);
+router.put('/profile/:uid', authLimiter, validateUpdateProfile, authController.updateProfile);
 
 module.exports = router;
