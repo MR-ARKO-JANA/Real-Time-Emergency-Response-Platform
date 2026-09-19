@@ -910,3 +910,27 @@
     font-size: 19px;
   }
 }
+
+/* ── Offline Mode ── */
+#offline-banner {
+  box-shadow: 0 4px 12px rgba(147, 0, 10, 0.4);
+}
+
+.offline-triage-card {
+  background: var(--surface-container-low, #1e2024);
+  border: 1px solid var(--surface-container-high, #333539);
+  border-left: 4px solid var(--secondary-container, #0566d9);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+.offline-triage-card h5 {
+  color: var(--on-surface, #e2e2e8);
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+.offline-triage-card p {
+  color: var(--on-surface-variant, #e3bdbf);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}

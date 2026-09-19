@@ -43,6 +43,80 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCloseProfile = document.getElementById('btn-close-profile');
   const profileBtn = document.getElementById('profile-btn');
 
+  // ═══════════════ OFFLINE MODE SYNC ═══════════════
+  const offlineBanner = document.getElementById('offline-banner');
+  const offlineTriageContainer = document.getElementById('offline-triage-container');
+  
+  function updateNetworkStatus() {
+    if (!navigator.onLine) {
+      if (offlineBanner) {
+        offlineBanner.classList.remove('hidden', '-translate-y-full');
+        offlineBanner.classList.add('translate-y-0');
+      }
+    } else {
+      if (offlineBanner) {
+        offlineBanner.classList.add('hidden', '-translate-y-full');
+        offlineBanner.classList.remove('translate-y-0');
+      }
+      syncOfflineQueue();
+    }
+  }
+
+  window.addEventListener('online', updateNetworkStatus);
+  window.addEventListener('offline', updateNetworkStatus);
+
+  function syncOfflineQueue() {
+    const queue = JSON.parse(localStorage.getItem('offline_sos_queue') || '[]');
+    if (queue.length > 0 && typeof startSosBroadcast === 'function') {
+      showToast('🟢 Back Online — Syncing queued offline alerts...');
+      queue.forEach(sos => startSosBroadcast(sos));
+      localStorage.removeItem('offline_sos_queue');
+      showToast('All offline alerts successfully synced to dispatch.');
+    }
+  }
+
+  function handleOfflineSOS(sosData) {
+    const queue = JSON.parse(localStorage.getItem('offline_sos_queue') || '[]');
+    queue.push(sosData);
+    localStorage.setItem('offline_sos_queue', JSON.stringify(queue));
+    
+    // SMS Fallback
+    const mapsLink = `https://maps.google.com/?q=${sosData.lat},${sosData.lng}`;
+    const smsBody = encodeURIComponent(`EMERGENCY SOS: ${sosData.type.toUpperCase()}! I need immediate help. Location: ${mapsLink} (Lat: ${sosData.lat}, Lng: ${sosData.lng})`);
+    
+    showToast('⚠️ Offline: Alert queued. Triggering SMS Fallback to 112...', 'error');
+    
+    setTimeout(() => {
+      window.location.href = `sms:112?body=${smsBody}`;
+    }, 1500);
+  }
+
+  // ═══════════════ STATIC OFFLINE TRIAGE ═══════════════
+  const staticTriageGuide = {
+    cpr: { title: "CPR Instructions", steps: "1. Tap victim firmly on shoulders. 2. Push hard and fast in center of chest (100-120 BPM). 3. Do not stop until EMS arrives." },
+    bleeding: { title: "Severe Bleeding", steps: "1. Apply direct pressure to wound with clean cloth. 2. Elevate if possible. 3. Use tourniquet high and tight if bleeding is life-threatening." },
+    choking: { title: "Choking (Heimlich)", steps: "1. Stand behind victim. 2. Place fist above navel. 3. Give 5 quick inward/upward thrusts." },
+    default: { title: "General Emergency", steps: "1. Ensure scene safety. 2. Do not move the victim unless in immediate danger. 3. Keep victim calm and warm." }
+  };
+  
+  function renderOfflineTriage() {
+    if (!offlineTriageContainer) return;
+    offlineTriageContainer.innerHTML = '';
+    offlineTriageContainer.classList.remove('hidden');
+    offlineTriageContainer.classList.add('flex');
+    
+    Object.keys(staticTriageGuide).forEach(key => {
+      const guide = staticTriageGuide[key];
+      const card = document.createElement('div');
+      card.className = 'offline-triage-card';
+      card.innerHTML = `<h5>${guide.title}</h5><p>${guide.steps}</p>`;
+      offlineTriageContainer.appendChild(card);
+    });
+  }
+
+  // Initial check
+  updateNetworkStatus();
+
   // ═══════════════ STATE ═══════════════
   let map, userMarker, sosMarker;
   let simulatedResponders = [];
@@ -524,6 +598,12 @@ document.addEventListener('DOMContentLoaded', () => {
       lng: userLng,
       isAnon: isAnon
     };
+    
+    if (!navigator.onLine || (socket && !socket.connected)) {
+      handleOfflineSOS(sosData);
+      return;
+    }
+    
     startSosBroadcast(sosData);
   });
 
@@ -1193,6 +1273,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ═══════════════ AI GUIDANCE ═══════════════
   async function generateAIGuidance(type, description = '') {
+    if (!navigator.onLine) {
+      if (aiGuidance) aiGuidance.innerHTML = '';
+      if (offlineTriageContainer) {
+        renderOfflineTriage();
+        aiGuidance.appendChild(offlineTriageContainer);
+      }
+      if (aiSummary) aiSummary.innerHTML = "⚠️ Offline Mode: Showing static first aid instructions.";
+      const aiLoading = document.getElementById('ai-loading');
+      if (aiLoading) aiLoading.remove();
+      return;
+    }
+
     if (!type) {
       aiGuidance.innerHTML = `
         <div class="ai-message">Welcome to NearHelp AI. I'm here to assist you with any emergency or safety questions.</div>

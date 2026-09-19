@@ -131,6 +131,11 @@
 </head>
 
 <body class="bg-background font-body-base text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container">
+  
+  <!-- OFFLINE BANNER -->
+  <div id="offline-banner" class="hidden fixed top-0 left-0 w-full bg-error-container text-on-error-container text-center py-2 z-50 font-body-bold text-sm shadow-md transition-all duration-300 transform -translate-y-full">
+    ⚠️ Offline Mode - Network Unavailable. SMS Fallback Active.
+  </div>
 
   <!-- ═══════════════ FIXED HEADER ═══════════════ -->
   <header id="main-header" class="fixed top-0 w-full z-50 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.4)]">
@@ -675,6 +680,7 @@
       </div>
       <div class="flex-1 overflow-y-auto p-unit-md flex flex-col gap-unit-md" id="ai-guidance">
         <!-- AI messages appear here -->
+        <div id="offline-triage-container" class="hidden flex-col gap-2"></div>
       </div>
       <div class="px-unit-md py-unit-sm border-t border-surface-container-high">
         <h4 class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-2">Emergency Summary (Read to 911)</h4>
