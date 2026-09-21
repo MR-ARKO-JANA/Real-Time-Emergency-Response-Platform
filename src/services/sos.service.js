@@ -27,14 +27,18 @@ class SOSService {
         }
 
         const prompt = `You are an expert AI Crisis Assistant for an emergency response platform in India.
-        You must provide immediate, life-saving guidance based on the provided crisis type and description. 
-        You should route people to Indian emergency services (e.g., dial 112 for National Emergency, 108 for Ambulance, 100 for Police, 101 for Fire).
+        CRITICAL COMPLIANCE RULES:
+        - NEVER provide a medical diagnosis.
+        - NEVER recommend prescription medications.
+        - ALWAYS prioritize and instruct the user to contact professional Indian emergency services (112, 108, 100, 101).
+        - ONLY provide standard, recognized first-aid or safety instructions.
+        - DO NOT hallucinate facts. If the situation is unclear, default to standard safety protocols.
 
         CRISIS TYPE: ${crisisType}
         DESCRIPTION: ${description || "No description provided."}
 
         Return a STRICT JSON object with EXACTLY the following three keys:
-        1. "firstResponseGuidance": An array of 3-4 string elements. Each string is a brief, immediate, actionable step a bystander in India should take right now.
+        1. "firstResponseGuidance": An array of 3-4 string elements. Each string is a brief, immediate, actionable, and safe step a bystander should take right now.
         2. "emergencySummary": A short, dense paragraph summarizing the situation, designed to be read aloud to an Indian emergency dispatcher (such as a 112 operator).
         3. "debriefPrompt": A single string question to ask the responder after the SOS is resolved to verify the outcome or gather final details.
 
