@@ -61,7 +61,12 @@ describe('SOS Socket Tests', () => {
     });
 
     it('should handle trigger_sos and broadcast to responders', (done) => {
-        SOS.prototype.save = jest.fn().mockResolvedValue({ _id: 'mock_db_id' });
+        SOS.mockImplementation(() => {
+            return {
+                _id: 'mock_db_id',
+                save: jest.fn().mockResolvedValue(true)
+            };
+        });
 
         clientSocket.emit('trigger_sos', {
             type: 'medical',
