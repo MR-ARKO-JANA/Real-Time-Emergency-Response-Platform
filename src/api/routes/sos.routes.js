@@ -30,7 +30,7 @@ const { aiLimiter, sosLimiter } = require('../middlewares/security.middleware');
  *       400:
  *         description: Invalid input
  */
-router.post('/ai-guidance', aiLimiter, validateSOSGuidance, sosController.getGuidance);
+router.post('/ai-guidance', authMiddleware, aiLimiter, validateSOSGuidance, sosController.getGuidance);
 
 /**
  * @openapi
