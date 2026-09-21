@@ -2,24 +2,15 @@ const SOS = require('../models/sos.model');
 const User = require('../models/user.model');
 const mongoose = require('mongoose');
 const sosService = require('../services/sos.service');
+const incidentService = require('../services/incident.service');
+const responderService = require('../services/responder.service');
 const logger = require('../loaders/logger');
 
 // In-Memory State for active fast-tracking, DB is for persistence
 const activeSOS = new Map(); // id -> sos payload
 const connectedUsers = new Map(); // socketId -> user payload
 
-// Calculates distance between two coordinates in meters
-function getDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371e3; // Earth radius in meters
-    const rad = Math.PI / 180;
-    const dLat = (lat2 - lat1) * rad;
-    const dLon = (lon2 - lon1) * rad;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * rad) * Math.cos(lat2 * rad) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-}
+// Removed old getDistance function, now located in incidentService
 
 module.exports = function (io) {
     io.on('connection', (socket) => {
@@ -80,7 +71,11 @@ module.exports = function (io) {
             try {
                 // 1. Save new SOS incident to MongoDB
                 const userSession = connectedUsers.get(socket.id);
-                const bId = mongoose.Types.ObjectId.isValid(userSession?.id) ? userSession.id : new mongoose.Types.ObjectId();
+                if (!userSession) {
+                    socket.emit('sos_failed', { message: "Authentication required to broadcast SOS" });
+                    return;
+                }
+                const bId = mongoose.Types.ObjectId.isValid(userSession.id) ? userSession.id : new mongoose.Types.ObjectId();
 
                 if (mongoose.connection.readyState === 1) {
                     const newDbSos = new SOS({
@@ -92,45 +87,19 @@ module.exports = function (io) {
                     await newDbSos.save();
                     sosEvent.dbId = newDbSos._id.toString();
                 } else {
-                    throw new Error("MongoDB not connected natively");
+                    throw new Error("MongoDB not connected");
                 }
             } catch (dbError) {
-                sosEvent.dbId = `MOCK-DB-${Date.now()}`;
+                logger.error(`[SOS FAILED] Failed to save SOS to database: ${dbError.message}`);
+                socket.emit('sos_failed', { message: "Failed to persist SOS event to the dispatch system. Please use SMS fallback." });
+                return; // Stop execution, do NOT broadcast fake incidents
             }
 
             try {
                 activeSOS.set(sosEvent.id, sosEvent);
                 socket.join(`incident_${sosEvent.id}`);
 
-                const crisisTypes = (data.types || [data.type]).filter(Boolean).map(t => t.toLowerCase());
-                if (crisisTypes.length === 0) crisisTypes.push('other');
-
-                let targetedResponders = [];
-
-                for (const [sId, uData] of connectedUsers.entries()) {
-                    if (sId !== socket.id) {
-                        const dist = getDistance(data.lat, data.lng, uData.lat, uData.lng);
-                        const userSkill = (uData.skill || '').toLowerCase();
-
-                        const hasPrimarySkill = crisisTypes.some(type => {
-                            if (type === 'medical' || type === 'health') return userSkill.includes('doctor') || userSkill.includes('medical') || userSkill.includes('nurse');
-                            if (type === 'fire') return userSkill.includes('fire');
-                            if (type === 'security' || type === 'police') return userSkill.includes('security') || userSkill.includes('police');
-                            if (type === 'mechanic') return userSkill.includes('mechanic');
-                            return userSkill === type.toLowerCase();
-                        });
-
-                        const isVolunteer = userSkill === 'volunteer' || userSkill === 'neighbour' || userSkill === 'citizen' || userSkill === '';
-
-                        if (dist <= 5000 && hasPrimarySkill) {
-                            targetedResponders.push({ sId, distance: dist, priority: 1, skillLabel: "Domain Specialist" });
-                        } else if (dist <= 2000 && isVolunteer) {
-                            targetedResponders.push({ sId, distance: dist, priority: 2, skillLabel: "Nearby Helper" });
-                        }
-                    }
-                }
-
-                targetedResponders.sort((a, b) => (a.priority - b.priority) || (a.distance - b.distance));
+                const targetedResponders = incidentService.matchResponders(data, connectedUsers, socket.id);
 
                 targetedResponders.forEach(r => {
                     io.to(r.sId).emit('new_sos', {
@@ -200,42 +169,29 @@ module.exports = function (io) {
                 const event = activeSOS.get(data.sosId);
                 const user = connectedUsers.get(socket.id);
 
-                if (user) {
-                    // Deduplication: prevent same responder from accepting twice
-                    const alreadyAccepted = event.responders.some(r => r.id === user.id);
-                    if (alreadyAccepted) {
-                        socket.emit('error_msg', { message: 'You have already accepted this SOS.' });
-                        return;
-                    }
+                const result = responderService.acceptIncident(event, user);
+                
+                if (!result.success) {
+                    socket.emit('error_msg', { message: result.error });
+                    return;
+                }
 
-                    socket.join(`incident_${data.sosId}`);
-                    const responderData = {
-                        id: user.id,
-                        name: user.name,
-                        skill: user.skill,
-                        phone: user.phone,
-                        lat: user.lat,
-                        lng: user.lng,
-                        time: "Active"
-                    };
-                    event.responders.push(responderData);
+                socket.join(`incident_${data.sosId}`);
 
-                    io.to(event.broadcasterId).emit('responder_assigned', { sosId: data.sosId, responder: responderData });
+                io.to(event.broadcasterId).emit('responder_assigned', { sosId: data.sosId, responder: result.responderData });
 
-                    if (event.crisisTypes && event.crisisTypes.length > 1) {
-                        const otherType = event.crisisTypes.find(t => t.toLowerCase() !== (user.skill || '').toLowerCase()) || event.crisisTypes[1];
-                        io.to(event.broadcasterId).emit('system_message', {
-                            text: `Responder accepted. For remaining issues, please also contact ${otherType.toUpperCase()} services directly.`,
-                            type: 'ai'
-                        });
-                    }
-
-                    io.to(`incident_${data.sosId}`).emit('new_message', {
-                        sender: 'System',
-                        text: `${user.name} has joined the rescue operation!`,
-                        type: 'system'
+                if (result.secondaryMessage) {
+                    io.to(event.broadcasterId).emit('system_message', {
+                        text: result.secondaryMessage,
+                        type: 'ai'
                     });
                 }
+
+                io.to(`incident_${data.sosId}`).emit('new_message', {
+                    sender: 'System',
+                    text: `${user.name} has joined the rescue operation!`,
+                    type: 'system'
+                });
             }
         });
 
