@@ -3,7 +3,9 @@ import React from 'react';
 const CRISIS_TYPES = [
     { id: 'medical', label: 'Medical', icon: 'cardiology' },
     { id: 'fire', label: 'Fire', icon: 'local_fire_department' },
+    { id: 'flood', label: 'Flood', icon: 'water' },
     { id: 'security', label: 'Security', icon: 'shield' },
+    { id: 'natural_disaster', label: 'Disaster', icon: 'thunderstorm' },
     { id: 'mechanic', label: 'Mechanic', icon: 'build' },
     { id: 'other', label: 'Other', icon: 'warning' }
 ];
