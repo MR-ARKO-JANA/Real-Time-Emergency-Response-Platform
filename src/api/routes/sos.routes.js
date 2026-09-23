@@ -44,4 +44,16 @@ router.post('/ai-guidance', authMiddleware, aiLimiter, validateSOSGuidance, sosC
  */
 router.get('/alerts', sosLimiter, authMiddleware, sosController.getAllSos);
 
+/**
+ * @openapi
+ * /api/sos/health:
+ *   get:
+ *     summary: SOS service health check
+ *     tags: [SOS]
+ *     responses:
+ *       200:
+ *         description: Service is healthy
+ */
+router.get('/health', (_req, res) => res.json({ status: 'ok', service: 'sos' }));
+
 module.exports = router;
