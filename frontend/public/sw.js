@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nearhelp-v1';
+const CACHE_NAME = 'nearhelp-v2';
 const OFFLINE_URL = '/index.html';
 
 const ASSETS_TO_CACHE = [
