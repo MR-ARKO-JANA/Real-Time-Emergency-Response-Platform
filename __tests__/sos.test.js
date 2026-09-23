@@ -91,4 +91,16 @@ describe('SOS API Tests', () => {
             expect(response.body.length).toBe(2);
         });
     });
+
+    describe('GET /api/sos/health', () => {
+        it('should return uptime status and timestamp', async () => {
+            const response = await request(app)
+                .get('/api/sos/health');
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty('status', 'healthy');
+            expect(response.body).toHaveProperty('service', 'SOS Subsystem');
+            expect(response.body).toHaveProperty('timestamp');
+        });
+    });
 });
