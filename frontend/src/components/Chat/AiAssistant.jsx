@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import api from '../../services/api';
+import { getAiGuidance } from '../../services/api';
 
 export function AiAssistant({ crisisType, description }) {
     const [guidance, setGuidance] = useState(null);
@@ -10,11 +10,11 @@ export function AiAssistant({ crisisType, description }) {
         setLoading(true);
         setError(null);
         try {
-            const response = await api.post('/sos/ai-guidance', {
-                crisisType: crisisType || 'general emergency',
-                description: description || ''
-            });
-            setGuidance(response.data);
+            const data = await getAiGuidance(
+                crisisType || 'general emergency', 
+                description || ''
+            );
+            setGuidance(data);
         } catch (err) {
             console.error('AI Guidance error:', err);
             setError('Failed to fetch AI guidance. Ensure you are authenticated and online.');

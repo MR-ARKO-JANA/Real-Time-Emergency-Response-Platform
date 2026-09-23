@@ -1,0 +1,5 @@
+{
+  "appId": "com.w3bix.nearhelp",
+  "appName": "NearHelp",
+  "webDir": "../public/react-dist"
+}

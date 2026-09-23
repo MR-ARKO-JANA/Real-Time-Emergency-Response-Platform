@@ -127,7 +127,7 @@ module.exports = function (io) {
                 // NearHelp does NOT automatically contact external emergency services.
                 // Users must call 112 directly for official dispatch.
                 const emergencyNumber = process.env.EMERGENCY_CONTACT_NUMBER || "112";
-                crisisTypes.forEach(type => {
+                (data.types || [data.type]).forEach(type => {
                     socket.emit('ai_automated_call', {
                         type: type,
                         number: emergencyNumber,

@@ -22,7 +22,16 @@ function App() {
   useEffect(() => {
     const socket = initSocket();
     
-    socket.on('connect', () => setIsConnected(true));
+    socket.on('connect', () => {
+      setIsConnected(true);
+      // Flush offline SOS queue on reconnect
+      const queue = JSON.parse(localStorage.getItem('offlineSosQueue') || '[]');
+      if (queue.length > 0) {
+        queue.forEach(payload => socket.emit('trigger_sos', payload));
+        localStorage.removeItem('offlineSosQueue');
+        console.log(`[NearHelp] Flushed ${queue.length} queued SOS event(s) after reconnect.`);
+      }
+    });
     socket.on('disconnect', () => setIsConnected(false));
     socket.connect(); // Actually connect here
     
@@ -42,18 +51,24 @@ function App() {
   const { activeIncidents, responders, incomingSosQueue, dismissSos } = useSocketEvents();
 
   const handleTriggerSos = (isAnon) => {
-    if (!isConnected) {
-      alert("Offline mode triggered - Refer to triage instructions below.");
-      return;
-    }
-    const socket = getSocket();
-    socket.emit('trigger_sos', {
+    const payload = {
       type: selectedCrisis,
       types: [selectedCrisis],
       lat: location?.lat || 0,
       lng: location?.lng || 0,
-      isAnon
-    });
+      isAnon,
+      timestamp: Date.now()
+    };
+
+    if (!isConnected) {
+      alert("Offline mode triggered - Refer to triage instructions below. Your SOS is queued and will be sent when connection is restored.");
+      const queue = JSON.parse(localStorage.getItem('offlineSosQueue') || '[]');
+      queue.push(payload);
+      localStorage.setItem('offlineSosQueue', JSON.stringify(queue));
+      return;
+    }
+    const socket = getSocket();
+    socket.emit('trigger_sos', payload);
   };
 
   const handleVoiceEmergency = (data) => {

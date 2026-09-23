@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">NearHelp</string>
+    <string name="title_activity_main">NearHelp</string>
+    <string name="package_name">com.w3bix.nearhelp</string>
+    <string name="custom_url_scheme">com.w3bix.nearhelp</string>
+</resources>
