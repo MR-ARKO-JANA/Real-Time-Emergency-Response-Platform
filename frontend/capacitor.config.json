@@ -1,5 +1,24 @@
 {
   "appId": "com.w3bix.nearhelp",
   "appName": "NearHelp",
-  "webDir": "../public/react-dist"
+  "webDir": "../public/react-dist",
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "launchAutoHide": true,
+      "backgroundColor": "#030712",
+      "androidSplashResourceName": "splash",
+      "showSpinner": false
+    },
+    "Geolocation": {
+      "permissions": {
+        "android": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+      }
+    }
+  }
 }
