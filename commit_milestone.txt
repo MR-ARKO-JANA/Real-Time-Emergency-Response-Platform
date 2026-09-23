@@ -82,3 +82,18 @@ Milestone commit 40 - 2026-09-19
 Milestone commit 41 - 2026-09-19
 Milestone commit 42 - 2026-09-19
 Milestone commit 43 - 2026-09-19
+Milestone commit 1 - 2026-09-23 - feat: Google Play readiness Capacitor Android & offline SOS
+Milestone commit 2 - 2026-09-23 - chore(pwa): bump service worker cache to nearhelp-v2
+Milestone commit 3 - 2026-09-23 - feat(android): integrate @capacitor/geolocation into useLocation hook
+Milestone commit 4 - 2026-09-23 - feat(offline): add useOfflineQueue hook for queued SOS events
+Milestone commit 5 - 2026-09-23 - config(android): add splash screen and security settings to capacitor
+Milestone commit 6 - 2026-09-23 - docs: update .env.example with Firebase security & Android build
+Milestone commit 7 - 2026-09-23 - docs(android): add ANDROID_BUILD.md with Play Store submission guide
+Milestone commit 8 - 2026-09-23 - feat(api): add GET /api/sos/health endpoint for uptime monitoring
+Milestone commit 9 - 2026-09-23 - feat(ux): add burn triage card and queued SOS badge to OfflineTriage
+Milestone commit 10 - 2026-09-23 - feat(sos): add Flood and Natural Disaster crisis types
+Milestone commit 11 - 2026-09-23 - refactor: extract shared app constants into constants.js
+Milestone commit 12 - 2026-09-23 - feat(pwa): update manifest.json with theme color and Play Store metadata
+Milestone commit 13 - 2026-09-23 - test(api): add unit test coverage for GET /api/sos/health endpoint
+Milestone commit 14 - 2026-09-23 - feat(geo): add Haversine distance calculator with test suite
+Milestone commit 15 - 2026-09-23 - docs(changelog): add CHANGELOG.md and record today milestone completion
