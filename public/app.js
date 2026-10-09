@@ -434,12 +434,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!userMeta.name && userMeta.uid) {
       try {
-        const res = await fetch(`/api/auth/profile/${userMeta.uid}`);
+        const token = localStorage.getItem('token');
+        const res = await fetch(`/api/auth/profile/${userMeta.uid}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (res.ok) {
           const data = await res.json();
           userMeta = {
             email: data.email || userMeta.email,
-            uid: data.firebaseUid || userMeta.uid,
+            uid: data._id || userMeta.uid,
             name: data.name || userMeta.name || 'Set Your Name',
             phone: data.phone || userMeta.phone || 'N/A',
             role: data.role || userMeta.role || 'citizen'
@@ -450,17 +453,6 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         } else if (res.status === 404 && userMeta.uid) {
           updateProfileModalUI(userMeta);
-          fetch('/api/auth/sync', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              firebaseUid: userMeta.uid,
-              name: userMeta.name || userMeta.email?.split('@')[0],
-              email: userMeta.email,
-              phone: userMeta.phone,
-              role: userMeta.role
-            })
-          }).catch(() => { });
         }
       } catch (err) { /* Silently fail */ }
     }
@@ -708,9 +700,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     try {
+      const token = localStorage.getItem('token');
       const res = await fetch(`/api/auth/profile/${userMeta.uid}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(updatedData)
       });
 
@@ -794,7 +790,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // ═══════════════ WEBSOCKET ═══════════════
   let socket;
   if (typeof io !== 'undefined') {
-    socket = io();
+    const token = localStorage.getItem('token');
+    socket = io({ auth: { token } });
   } else {
     showToast('Connection library failed. Live features disabled.');
     socket = { on: () => { }, emit: () => { }, id: 'mock-id' };

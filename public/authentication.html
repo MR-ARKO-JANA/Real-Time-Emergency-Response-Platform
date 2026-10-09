@@ -154,27 +154,6 @@
     </div>
 
     <script type="module">
-        // Firebase Setup
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-        import {
-            getAuth,
-            createUserWithEmailAndPassword,
-            signInWithEmailAndPassword
-        } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBwBOQ9KPhlZfLJp_WrIZL4p3z6ktK3X-E",
-            authDomain: "nit-hack-de.firebaseapp.com",
-            projectId: "nit-hack-de",
-            storageBucket: "nit-hack-de.firebasestorage.app",
-            messagingSenderId: "795931621619",
-            appId: "1:795931621619:web:4d68db464167b160995f86",
-            measurementId: "G-KLHP9MX4B5"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
         const signinTab = document.getElementById("signinTab");
         const signupTab = document.getElementById("signupTab");
         const signinForm = document.getElementById("signinForm");
@@ -214,52 +193,30 @@
             const location = document.getElementById("signupLocation").value;
 
             try {
-                // 1. Create User in Firebase
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-
-                // 2. Get Firebase token immediately — user is already authenticated at this point
-                const token = await user.getIdToken();
-                localStorage.setItem("token", token);
-                localStorage.setItem("user", JSON.stringify({ email: user.email, uid: user.uid, name: name, phone: phone, role: role }));
-
-                // 3. Sync to MongoDB (non-blocking — don't let sync failure stop the redirect)
-                try {
-                    const res = await fetch("/api/auth/sync", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            firebaseUid: user.uid,
-                            name,
-                            email,
-                            phone,
-                            role,
-                            location
-                        })
-                    });
-                    const data = await res.json();
-                    if (!res.ok && res.status !== 409) {
-                        console.warn("MongoDB sync issue (non-fatal):", data);
-                    }
-                } catch (syncErr) {
-                    console.warn("MongoDB sync failed (non-fatal):", syncErr);
+                const res = await fetch("/api/auth/register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        name,
+                        email,
+                        password,
+                        phone,
+                        role,
+                        location
+                    })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    localStorage.setItem("token", data.token);
+                    localStorage.setItem("user", JSON.stringify({ email: data.user.email, uid: data.user._id, name: data.user.name, phone: phone, role: data.user.role }));
+                    window.location.href = "index.html";
+                } else {
+                    alert("Signup failed: " + (data.msg || data.error || "Unknown error"));
                 }
-
-                // 4. Always redirect to dashboard — Firebase auth is what matters
-                window.location.href = "index.html";
-
             } catch (err) {
                 console.error(err);
-                const code = err.code || '';
-                if (code === 'auth/email-already-in-use') {
-                    alert("This email is already registered. Please sign in instead.");
-                } else if (code === 'auth/weak-password') {
-                    alert("Password is too weak. Please use at least 6 characters.");
-                } else if (code === 'auth/invalid-email') {
-                    alert("Please enter a valid email address.");
-                } else {
-                    alert("Signup failed: " + err.message);
-                }
+                alert("Signup failed: " + err.message);
             }
         });
 
@@ -271,48 +228,28 @@
             const password = document.getElementById("loginPassword").value;
 
             try {
-                // Login with Firebase
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
+                const res = await fetch("/api/auth/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
 
-                // Get the ID Token
-                const token = await user.getIdToken();
-
-                // Fetch Profile from MongoDB to get Name/Phone/Role
-                const profileRes = await fetch(`/api/auth/profile/${user.uid}`);
-                const profileData = await profileRes.json();
-
-                // Save token & redirect
-                localStorage.setItem("token", token);
-
-                if (profileRes.ok) {
+                if (res.ok) {
+                    localStorage.setItem("token", data.token);
                     localStorage.setItem("user", JSON.stringify({
-                        email: profileData.email,
-                        uid: profileData.firebaseUid,
-                        name: profileData.name,
-                        phone: profileData.phone,
-                        role: profileData.role
+                        email: data.user.email,
+                        uid: data.user._id,
+                        name: data.user.name,
+                        role: data.user.role
                     }));
+                    window.location.href = "index.html";
                 } else {
-                    localStorage.setItem("user", JSON.stringify({ email: user.email, uid: user.uid }));
+                    alert("Login failed: " + (data.msg || data.error || "Invalid credentials"));
                 }
-
-                window.location.href = "index.html";
-
             } catch (err) {
                 console.error(err);
-                const code = err.code || '';
-                if (code === 'auth/invalid-credential' || code === 'auth/wrong-password') {
-                    alert("Incorrect email or password. Please try again.");
-                } else if (code === 'auth/user-not-found') {
-                    alert("No account found with this email. Please sign up first.");
-                } else if (code === 'auth/too-many-requests') {
-                    alert("Too many failed attempts. Please wait a moment and try again.");
-                } else if (code === 'auth/invalid-email') {
-                    alert("Please enter a valid email address.");
-                } else {
-                    alert("Login failed: " + err.message);
-                }
+                alert("Login failed: " + err.message);
             }
         });
     </script>
