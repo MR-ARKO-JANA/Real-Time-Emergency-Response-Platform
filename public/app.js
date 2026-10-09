@@ -567,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (map) {
         if (forceCenter || !isBroadcasting) {
-          map.setView([userLat, userLng], 15);
+          map.setView([userLat, userLng], 16);
         }
         if (userMarker) {
           userMarker.setLatLng([userLat, userLng]);
@@ -602,6 +602,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     }
+    window.applyUserLocation = applyUserLocation;
 
     // ── Location Search Bar Handler ──
     const searchInput = document.getElementById('input-search-location');
