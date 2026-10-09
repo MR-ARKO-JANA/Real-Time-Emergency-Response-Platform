@@ -10,7 +10,7 @@ class AuthService {
         const { name, email, password, phone, role, location } = userData;
 
         if (mongoose.connection.readyState !== 1) {
-            return { status: 500, data: { msg: 'Database offline. Cannot register.' } };
+            return { status: 503, data: { msg: 'Server is starting up. Please wait a few seconds and try again.' } };
         }
 
         let user = await User.findOne({ email });
@@ -50,7 +50,7 @@ class AuthService {
 
     async login(email, password) {
         if (mongoose.connection.readyState !== 1) {
-            return { status: 500, data: { msg: 'Database offline. Cannot login.' } };
+            return { status: 503, data: { msg: 'Server is starting up. Please wait a few seconds and try again.' } };
         }
 
         const user = await User.findOne({ email });
