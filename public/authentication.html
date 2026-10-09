@@ -297,7 +297,9 @@
                     showSuccess('signup-success', '✅ Account created! Redirecting...');
                     setTimeout(function() { window.location.href = 'index.html'; }, 1000);
                 } else {
-                    showError('signup-error', data.msg || data.error || 'Signup failed. Please try again.');
+                    var errMsg = data.msg || (data.error && data.error.message ? data.error.message : data.error) || 'Signup failed. Please try again.';
+                    if (typeof errMsg === 'object') errMsg = JSON.stringify(errMsg);
+                    showError('signup-error', errMsg);
                     btn.disabled = false;
                     btn.textContent = 'Create Account';
                 }
@@ -343,7 +345,9 @@
                     }));
                     window.location.href = 'index.html';
                 } else {
-                    showError('login-error', data.msg || data.error || 'Invalid email or password.');
+                    var errMsg = data.msg || (data.error && data.error.message ? data.error.message : data.error) || 'Invalid email or password.';
+                    if (typeof errMsg === 'object') errMsg = JSON.stringify(errMsg);
+                    showError('login-error', errMsg);
                     btn.disabled = false;
                     btn.textContent = 'Sign In';
                 }
