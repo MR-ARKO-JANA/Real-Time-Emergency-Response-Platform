@@ -749,9 +749,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnLogoutHeader = document.getElementById('btn-logout-header');
   if (btnLogoutHeader) {
     btnLogoutHeader.addEventListener('click', () => {
-      localStorage.removeItem('token');
+      // Reset guest session and reload (no auth redirect needed)
       localStorage.removeItem('user');
-      window.location.href = 'authentication.html';
+      localStorage.removeItem('token');
+      window.location.reload();
     });
   }
 
@@ -922,8 +923,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ═══════════════ WEBSOCKET ═══════════════
   let socket;
   if (typeof io !== 'undefined') {
-    const token = localStorage.getItem('token');
-    socket = io({ auth: { token } });
+    socket = io(); // No auth token required - anonymous mode
   } else {
     showToast('Connection library failed. Live features disabled.');
     socket = { on: () => { }, emit: () => { }, id: 'mock-id' };
