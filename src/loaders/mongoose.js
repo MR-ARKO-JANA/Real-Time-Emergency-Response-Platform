@@ -13,6 +13,7 @@ module.exports = async () => {
                 serverSelectionTimeoutMS: 5000,
             });
             logger.info('Connected to MongoDB Atlas successfully');
+            await cleanIndexes();
             return;
         }
     } catch (error) {
@@ -21,11 +22,27 @@ module.exports = async () => {
         logger.warn('Falling back to local MongoDB...');
     }
 
+    async function cleanIndexes() {
+        try {
+            const collection = mongoose.connection.collection('users');
+            const indexes = await collection.indexes();
+            for (const idx of indexes) {
+                if (idx.name.includes('firebase') || (idx.name.includes('phone') && idx.unique)) {
+                    await collection.dropIndex(idx.name).catch(() => {});
+                    logger.info(`Cleaned up obsolete index: ${idx.name}`);
+                }
+            }
+        } catch (e) {
+            // Ignore index cleanup errors if collection doesn't exist yet
+        }
+    }
+
     try {
         await mongoose.connect(localUri, {
             serverSelectionTimeoutMS: 2000,
         });
         logger.info('Connected to Local MongoDB successfully');
+        await cleanIndexes();
     } catch (error) {
         logger.error('Failed to connect to both Atlas and Local MongoDB.');
         logger.warn('RUNNING IN OFFLINE PROTOTYPE MODE: Features are fully enabled in memory.');
