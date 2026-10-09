@@ -2,6 +2,18 @@ const Joi = require('joi');
 
 // Validation schemas
 const schemas = {
+    syncUser: Joi.object({
+        firebaseUid: Joi.string().required(),
+        name: Joi.string().min(2).max(100).required(),
+        email: Joi.string().email().required(),
+        phone: Joi.string().pattern(/^\d{10,15}$/).optional(),
+        role: Joi.string().valid(
+            'citizen', 'responder', 'admin',
+            'medical', 'police', 'fire', 'mechanic', 'volunteer', 'other'
+        ).default('citizen'),
+        location: Joi.string().optional().allow('', null)
+    }),
+
     registerUser: Joi.object({
         name: Joi.string().min(2).max(100).required(),
         email: Joi.string().email().required(),
@@ -80,6 +92,7 @@ const validate = (schemaName) => {
 
 // Export named validators for convenience
 const validateRegister = validate('registerUser');
+const validateSyncUser = validate('syncUser');
 const validateUpdateProfile = validate('updateProfile');
 const validateSOSGuidance = validate('aiGuidance');
 const validateTriggerSOS = validate('triggerSOS');
@@ -89,6 +102,7 @@ module.exports = {
     validate,
     schemas,
     validateRegister,
+    validateSyncUser,
     validateUpdateProfile,
     validateSOSGuidance,
     validateTriggerSOS,
