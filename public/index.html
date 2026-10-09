@@ -1070,6 +1070,14 @@
     </div>
   </nav>
 
+  <!-- ═══════════════ GPS LOCATE ME BUTTON ═══════════════ -->
+  <button id="btn-recenter-gps" onclick="if(window.refreshRealtimeLocation) window.refreshRealtimeLocation(true);"
+    class="fixed bottom-16 right-4 xl:bottom-16 xl:right-6 z-40 bg-surface-container/90 hover:bg-surface-bright backdrop-blur-md text-tertiary hover:text-white p-3 rounded-full shadow-2xl border border-tertiary/40 flex items-center gap-2 transition-all group"
+    title="Recenter Real-Time GPS Location">
+    <span class="material-symbols-outlined text-[20px] group-hover:rotate-45 transition-transform">my_location</span>
+    <span class="text-xs font-bold font-label-caps uppercase hidden sm:inline text-on-surface">Live GPS</span>
+  </button>
+
   <!-- ═══════════════ DESKTOP BOTTOM TELEMETRY ═══════════════ -->
   <footer
     class="fixed bottom-0 w-full z-40 bg-surface/90 backdrop-blur-xl shadow-[0_-1px_8px_rgba(0,0,0,0.4)] hidden xl:block">

@@ -126,11 +126,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // WebRTC State
   let peerConnection = null;
-  let localStream = null;
   let isResponder = true;
   let selectedCrisis = 'medical';
-  let userLat = 51.505;
-  let userLng = -0.09;
+  let savedLocation = null;
+  try {
+    const rawLoc = localStorage.getItem('userLocation');
+    if (rawLoc) savedLocation = JSON.parse(rawLoc);
+  } catch(e) {}
+
+  let userLat = (savedLocation && typeof savedLocation.lat === 'number') ? savedLocation.lat : 22.5726;
+  let userLng = (savedLocation && typeof savedLocation.lng === 'number') ? savedLocation.lng : 88.3639;
   let activeSosId = null;
   let currentSosId = null;
   let watchId = null;
@@ -520,73 +525,106 @@ document.addEventListener('DOMContentLoaded', () => {
       weight: 1
     }).addTo(map);
 
-    if (navigator.geolocation) {
-      citizenWatchId = navigator.geolocation.watchPosition(
-        (position) => {
-          userLat = position.coords.latitude;
-          userLng = position.coords.longitude;
+    function formatCoordinates(lat, lng) {
+      if (lat == null || lng == null) return '--';
+      const latDir = lat >= 0 ? 'N' : 'S';
+      const lngDir = lng >= 0 ? 'E' : 'W';
+      return `${Math.abs(lat).toFixed(4)}° ${latDir}, ${Math.abs(lng).toFixed(4)}° ${lngDir}`;
+    }
 
-          if (!isBroadcasting) {
-            map.setView([userLat, userLng], 15);
-          }
+    function applyUserLocation(lat, lng, accuracy = 50, source = 'gps', forceCenter = false) {
+      if (typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) return;
+      userLat = lat;
+      userLng = lng;
+
+      try {
+        localStorage.setItem('userLocation', JSON.stringify({ lat, lng, timestamp: Date.now() }));
+      } catch (e) {}
+
+      if (map) {
+        if (forceCenter || !isBroadcasting) {
+          map.setView([userLat, userLng], 15);
+        }
+        if (userMarker) {
           userMarker.setLatLng([userLat, userLng]);
-
           if (userMarker.accuracyCircle) {
             userMarker.accuracyCircle.setLatLng([userLat, userLng]);
-            userMarker.accuracyCircle.setRadius(position.coords.accuracy || 100);
+            userMarker.accuracyCircle.setRadius(accuracy || 50);
           }
+        }
+      }
 
-          // Update coordinates display
-          const coordsEl = document.getElementById('map-coords');
-          if (coordsEl) coordsEl.textContent = `${userLat.toFixed(4)}° N, ${userLng.toFixed(4)}° W`;
+      // Update coordinates display on HUD
+      const coordsEl = document.getElementById('map-coords');
+      if (coordsEl) {
+        const srcTag = source === 'ip' ? ' (Approx IP)' : ' (Live GPS)';
+        coordsEl.textContent = `${formatCoordinates(userLat, userLng)}${srcTag}`;
+      }
 
-          const gpsEl = document.getElementById('footer-gps-accuracy');
-          if (gpsEl) gpsEl.textContent = `±${Math.round(position.coords.accuracy || 0)}M`;
+      const gpsEl = document.getElementById('footer-gps-accuracy');
+      if (gpsEl) {
+        gpsEl.textContent = source === 'ip' ? '±Approx (IP)' : `±${Math.round(accuracy || 15)}M`;
+      }
 
-          const userMeta = JSON.parse(localStorage.getItem('user') || '{}');
-          socket.emit('update_location', {
-            lat: userLat,
-            lng: userLng,
-            uid: userMeta.uid,
-            name: userMeta.name || userMeta.email?.split('@')[0],
-            phone: userMeta.phone,
-            skill: userMeta.role || 'citizen'
-          });
+      const userMeta = JSON.parse(localStorage.getItem('user') || '{}');
+      if (typeof socket !== 'undefined' && socket && socket.connected) {
+        socket.emit('update_location', {
+          lat: userLat,
+          lng: userLng,
+          uid: userMeta.uid,
+          name: userMeta.name || userMeta.email?.split('@')[0],
+          phone: userMeta.phone,
+          skill: userMeta.role || 'citizen'
+        });
+      }
+    }
+
+    window.refreshRealtimeLocation = function(forceCenter = true) {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            applyUserLocation(position.coords.latitude, position.coords.longitude, position.coords.accuracy, 'gps', forceCenter);
+            if (forceCenter) showToast('🛰️ Live GPS location locked and centered.');
+          },
+          (err) => {
+            console.warn('GPS signal issue, querying IP fallback:', err);
+            fetch('https://ipapi.co/json/')
+              .then(res => res.json())
+              .then(data => {
+                if (data.latitude && data.longitude) {
+                  applyUserLocation(data.latitude, data.longitude, 2000, 'ip', forceCenter);
+                  if (forceCenter) showToast('🌐 Location calibrated via Network IP.');
+                }
+              })
+              .catch(() => {
+                fetch('https://ipwho.is/')
+                  .then(r => r.json())
+                  .then(d => {
+                    if (d.success && d.latitude && d.longitude) {
+                      applyUserLocation(d.latitude, d.longitude, 2000, 'ip', forceCenter);
+                    }
+                  }).catch(() => {});
+              });
+          },
+          { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+        );
+      }
+    };
+
+    // 1. Initial quick location lookup
+    window.refreshRealtimeLocation(true);
+
+    // 2. Continuous real-time position tracking
+    if (navigator.geolocation) {
+      if (citizenWatchId != null) navigator.geolocation.clearWatch(citizenWatchId);
+      citizenWatchId = navigator.geolocation.watchPosition(
+        (position) => {
+          applyUserLocation(position.coords.latitude, position.coords.longitude, position.coords.accuracy, 'gps', false);
         },
-        (err) => { 
-          if (err.code === 1) {
-            showToast('⚠️ Location access denied. Using approximate IP location.');
-          } else {
-            showToast('⚠️ GPS signal weak. Using approximate IP location.');
-          }
-          // IP Geolocation Fallback
-          fetch('https://ipapi.co/json/')
-            .then(res => res.json())
-            .then(data => {
-              if (data.latitude && data.longitude) {
-                userLat = data.latitude;
-                userLng = data.longitude;
-                map.setView([userLat, userLng], 13);
-                userMarker.setLatLng([userLat, userLng]);
-                const coordsEl = document.getElementById('map-coords');
-                if (coordsEl) coordsEl.textContent = `${userLat.toFixed(4)}° N, ${userLng.toFixed(4)}° W (IP Fallback)`;
-                const gpsEl = document.getElementById('footer-gps-accuracy');
-                if (gpsEl) gpsEl.textContent = `±5000M`;
-                
-                const userMeta = JSON.parse(localStorage.getItem('user') || '{}');
-                socket.emit('update_location', {
-                  lat: userLat,
-                  lng: userLng,
-                  uid: userMeta.uid,
-                  name: userMeta.name || userMeta.email?.split('@')[0],
-                  phone: userMeta.phone,
-                  skill: userMeta.role || 'citizen'
-                });
-              }
-            })
-            .catch(() => showToast('Failed to detect location entirely. Defaulting to London.'));
+        (err) => {
+          console.warn('Continuous GPS watch error:', err);
         },
-        { enableHighAccuracy: true }
+        { enableHighAccuracy: true, maximumAge: 2000, timeout: 15000 }
       );
     }
   }
