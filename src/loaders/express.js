@@ -37,18 +37,28 @@ module.exports = async ({ app }) => {
     // CORS
     const origins = [
         process.env.CLIENT_URL,
+        process.env.SERVER_URL,
         "http://localhost:3000",
         "http://127.0.0.1:3000"
     ].filter(Boolean);
 
     const corsOptions = {
         origin: function (origin, callback) {
-            if (!origin || origins.indexOf(origin) !== -1 || origin.includes('localhost')) {
+            // Allow same-origin (no origin header), localhost, onrender.com subdomains, and whitelisted origins
+            if (
+                !origin ||
+                origin.includes('localhost') ||
+                origin.includes('127.0.0.1') ||
+                origin.includes('.onrender.com') ||
+                origin.includes('.run.app') ||
+                origins.indexOf(origin) !== -1
+            ) {
                 callback(null, true);
             } else {
                 callback(new Error('Not allowed by CORS'));
             }
         },
+        credentials: true,
         optionsSuccessStatus: 200
     };
     app.use(cors(corsOptions));
