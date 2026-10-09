@@ -225,6 +225,21 @@
     class="fixed inset-0 z-[1] pointer-events-none bg-gradient-to-t from-surface via-surface/40 to-surface/20 transition-opacity duration-500">
   </div>
 
+  <!-- ═══════════════ REAL-TIME LOCATION SEARCH & PIN BAR ═══════════════ -->
+  <div class="fixed top-20 left-4 right-4 sm:left-6 sm:right-auto sm:w-[380px] z-30 pointer-events-auto">
+    <div class="bg-surface-container-high/90 backdrop-blur-xl border border-tertiary/40 rounded-xl shadow-2xl p-2 flex items-center gap-2">
+      <span class="material-symbols-outlined text-tertiary text-[20px] ml-1">location_searching</span>
+      <input type="text" id="input-search-location" placeholder="Search area/city (e.g. Agarpara, Kolkata)..."
+        class="bg-transparent text-xs text-on-surface placeholder-on-surface-variant/50 flex-1 outline-none font-medium" />
+      <button id="btn-search-location" class="bg-tertiary/20 hover:bg-tertiary text-tertiary hover:text-surface px-2.5 py-1 rounded-lg text-xs font-bold transition-all">
+        Find
+      </button>
+      <button id="btn-manual-pin" class="p-1 text-tertiary hover:text-white transition-colors" title="Drag marker or tap map to pin exact location">
+        <span class="material-symbols-outlined text-[18px]">push_pin</span>
+      </button>
+    </div>
+  </div>
+
   <!-- ═══════════════ MAIN CONTENT AREA ═══════════════ -->
   <main class="relative z-10 w-full pt-16 min-h-screen pb-14 pointer-events-none">
 

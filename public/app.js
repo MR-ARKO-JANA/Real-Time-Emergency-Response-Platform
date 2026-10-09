@@ -513,9 +513,23 @@ document.addEventListener('DOMContentLoaded', () => {
       iconSize: [20, 20]
     });
     userMarker = L.marker([userLat, userLng], {
+      draggable: true,
       icon: userIcon,
       zIndexOffset: 1000
     }).addTo(map);
+
+    userMarker.on('dragend', function (e) {
+      const pos = e.target.getLatLng();
+      applyUserLocation(pos.lat, pos.lng, 5, 'manual', false);
+      showToast('📍 Exact location set via pin drag!');
+    });
+
+    map.on('click', function (e) {
+      // Don't override if click originated from HUD modals
+      if (e.originalEvent && e.originalEvent.target && e.originalEvent.target.closest && (e.originalEvent.target.closest('#idle-panel') || e.originalEvent.target.closest('#active-panel') || e.originalEvent.target.closest('header'))) return;
+      applyUserLocation(e.latlng.lat, e.latlng.lng, 5, 'manual', false);
+      showToast('📍 Exact location pinned to map!');
+    });
 
     userMarker.accuracyCircle = L.circle([userLat, userLng], {
       radius: 100,
@@ -524,6 +538,8 @@ document.addEventListener('DOMContentLoaded', () => {
       fillOpacity: 0.08,
       weight: 1
     }).addTo(map);
+
+    let currentLocationSource = 'none'; // 'gps' | 'manual' | 'ip' | 'saved'
 
     function formatCoordinates(lat, lng) {
       if (lat == null || lng == null) return '--';
@@ -534,11 +550,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function applyUserLocation(lat, lng, accuracy = 50, source = 'gps', forceCenter = false) {
       if (typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) return;
+
+      // Prevent low-accuracy IP from overwriting high-accuracy GPS or manual user pins
+      if (source === 'ip' && (currentLocationSource === 'gps' || currentLocationSource === 'manual')) {
+        console.log('Ignoring IP fallback because accurate GPS or manual pin is active');
+        return;
+      }
+
+      currentLocationSource = source;
       userLat = lat;
       userLng = lng;
 
       try {
-        localStorage.setItem('userLocation', JSON.stringify({ lat, lng, timestamp: Date.now() }));
+        localStorage.setItem('userLocation', JSON.stringify({ lat, lng, source, timestamp: Date.now() }));
       } catch (e) {}
 
       if (map) {
@@ -557,13 +581,13 @@ document.addEventListener('DOMContentLoaded', () => {
       // Update coordinates display on HUD
       const coordsEl = document.getElementById('map-coords');
       if (coordsEl) {
-        const srcTag = source === 'ip' ? ' (Approx IP)' : ' (Live GPS)';
+        const srcTag = source === 'ip' ? ' (Approx IP)' : (source === 'manual' ? ' (Pinned)' : ' (Live GPS)');
         coordsEl.textContent = `${formatCoordinates(userLat, userLng)}${srcTag}`;
       }
 
       const gpsEl = document.getElementById('footer-gps-accuracy');
       if (gpsEl) {
-        gpsEl.textContent = source === 'ip' ? '±Approx (IP)' : `±${Math.round(accuracy || 15)}M`;
+        gpsEl.textContent = source === 'ip' ? '±Approx (IP)' : (source === 'manual' ? '±Exact Pin' : `±${Math.round(accuracy || 15)}M`);
       }
 
       const userMeta = JSON.parse(localStorage.getItem('user') || '{}');
@@ -577,6 +601,43 @@ document.addEventListener('DOMContentLoaded', () => {
           skill: userMeta.role || 'citizen'
         });
       }
+    }
+
+    // ── Location Search Bar Handler ──
+    const searchInput = document.getElementById('input-search-location');
+    const searchBtn = document.getElementById('btn-search-location');
+    const pinBtn = document.getElementById('btn-manual-pin');
+
+    async function searchLocationQuery() {
+      const q = searchInput ? searchInput.value.trim() : '';
+      if (!q) return;
+      showToast(`🔍 Searching for "${q}"...`);
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`);
+        const results = await res.json();
+        if (results && results.length > 0) {
+          const lat = parseFloat(results[0].lat);
+          const lng = parseFloat(results[0].lon);
+          applyUserLocation(lat, lng, 10, 'manual', true);
+          showToast(`📍 Found: ${results[0].display_name.split(',')[0]}`, 'success');
+        } else {
+          showToast('❌ Location not found. You can click on the map to pin your exact spot.');
+        }
+      } catch (err) {
+        showToast('Search failed. Click anywhere on the map to set your location.');
+      }
+    }
+
+    if (searchBtn) searchBtn.addEventListener('click', searchLocationQuery);
+    if (searchInput) {
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') searchLocationQuery();
+      });
+    }
+    if (pinBtn) {
+      pinBtn.addEventListener('click', () => {
+        showToast('📌 Tip: Click anywhere on the map or drag the blue marker to set your exact location!');
+      });
     }
 
     window.refreshRealtimeLocation = function(forceCenter = true) {
