@@ -4,138 +4,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NearHelp Authentication</title>
-    <script>
-        if (localStorage.getItem("token")) {
-            window.location.href = "index.html";
-        }
-    </script>
+    <title>NearHelp — Sign In</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Outfit', sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
 
         body {
-            height: 100vh;
+            min-height: 100vh;
             background: linear-gradient(135deg, #0f172a, #1e293b);
             display: flex;
             justify-content: center;
             align-items: center;
             color: white;
+            padding: 20px;
         }
 
         .container {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(15px);
-            padding: 30px;
+            padding: 32px;
             border-radius: 20px;
-            width: 380px;
+            width: 100%;
+            max-width: 400px;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255,255,255,0.08);
         }
 
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+        h2 { text-align: center; margin-bottom: 24px; font-size: 1.6rem; }
+        h2 span { color: #ff3b3b; }
 
-        .tabs {
-            display: flex;
-            margin-bottom: 20px;
-        }
+        .tabs { display: flex; margin-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.1); }
 
         .tabs button {
             flex: 1;
             padding: 10px;
             background: none;
             border: none;
-            color: white;
+            color: rgba(255,255,255,0.5);
             cursor: pointer;
+            font-size: 0.95rem;
+            font-family: 'Outfit', sans-serif;
             border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: 0.2s;
         }
 
-        .tabs .active {
-            border-color: #ff3b3b;
-            color: #ff3b3b;
-        }
+        .tabs button.active { border-color: #ff3b3b; color: #ff3b3b; font-weight: 600; }
 
-        form {
-            display: none;
-            flex-direction: column;
-            gap: 12px;
-        }
+        form { display: none; flex-direction: column; gap: 12px; }
+        form.active { display: flex; }
 
-        form.active {
-            display: flex;
-        }
-
-        input,
-        select {
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            background: #1e293b;
+        input, select {
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.07);
             color: white;
             outline: none;
+            font-size: 0.9rem;
+            font-family: 'Outfit', sans-serif;
+            transition: border 0.2s;
         }
+        input:focus, select:focus { border-color: rgba(255,59,59,0.5); }
+        select option { background: #1e293b; }
 
         button.submit-btn {
-            padding: 10px;
+            padding: 12px;
             border: none;
-            border-radius: 8px;
-            background: #ff3b3b;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ff3b3b, #cc0000);
             color: white;
             cursor: pointer;
-            font-weight: 600;
-            transition: 0.3s;
+            font-weight: 700;
+            font-size: 1rem;
+            font-family: 'Outfit', sans-serif;
+            transition: 0.2s;
+            margin-top: 4px;
         }
+        button.submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        button.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-        button.submit-btn:hover {
-            background: #ff1f1f;
+        .error-msg {
+            background: rgba(255,59,59,0.15);
+            border: 1px solid rgba(255,59,59,0.4);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            color: #ffb2b2;
+            display: none;
         }
+        .error-msg.show { display: block; }
 
-        .small-text {
-            font-size: 12px;
-            opacity: 0.6;
-            text-align: center;
-            margin-top: 10px;
+        .success-msg {
+            background: rgba(76,215,246,0.15);
+            border: 1px solid rgba(76,215,246,0.4);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            color: #a0f0ff;
+            display: none;
         }
+        .success-msg.show { display: block; }
+
+        .small-text { font-size: 12px; opacity: 0.5; text-align: center; margin-top: 12px; }
+        .gps-status { font-size: 11px; color: #4cd7f6; margin-top: 2px; }
     </style>
-
 </head>
 
 <body>
-
     <div class="container">
-
-        <h2>NearHelp Access</h2>
+        <h2>Near<span>Help</span></h2>
 
         <div class="tabs">
-            <button id="signinTab" class="active">Sign In</button>
-            <button id="signupTab">Sign Up</button>
+            <button id="signinTab" class="active" onclick="switchTab('signin')">Sign In</button>
+            <button id="signupTab" onclick="switchTab('signup')">Sign Up</button>
         </div>
 
         <!-- SIGN IN -->
         <form id="signinForm" class="active">
-            <input type="email" id="loginEmail" placeholder="Email Address" required>
-            <input type="password" id="loginPassword" placeholder="Password" required>
-            <button type="submit" class="submit-btn" id="loginBtn">Login</button>
+            <div class="error-msg" id="login-error"></div>
+            <input type="email" id="loginEmail" placeholder="Email Address" required autocomplete="email">
+            <input type="password" id="loginPassword" placeholder="Password" required autocomplete="current-password">
+            <button type="submit" class="submit-btn" id="loginBtn">Sign In</button>
         </form>
 
         <!-- SIGN UP -->
         <form id="signupForm">
+            <div class="error-msg" id="signup-error"></div>
+            <div class="success-msg" id="signup-success"></div>
             <input type="text" id="signupName" placeholder="Full Name" required>
-            <input type="email" id="signupEmail" placeholder="Email Address" required>
-            <input type="password" id="signupPassword" placeholder="Password" required>
-            <input type="tel" id="signupPhone" placeholder="Phone Number (10-15 digits)" pattern="[0-9]{10,15}" required
-                title="Please enter a 10 to 15-digit phone number">
+            <input type="email" id="signupEmail" placeholder="Email Address" required autocomplete="email">
+            <input type="password" id="signupPassword" placeholder="Password (min 6 chars)" required autocomplete="new-password">
+            <input type="tel" id="signupPhone" placeholder="Phone Number (10 digits)" required>
 
             <select id="signupRole" required>
-                <option value="">Select Domain/Role</option>
+                <option value="">Select Your Role</option>
+                <option value="citizen">Citizen / General Public</option>
                 <option value="medical">Doctor / Medical Professional</option>
                 <option value="police">Police / Security</option>
                 <option value="fire">Firefighter / Rescue</option>
@@ -144,133 +149,204 @@
                 <option value="other">Other</option>
             </select>
 
-            <input type="text" id="signupLocation" placeholder="Detecting Location..." readonly>
+            <div>
+                <input type="text" id="signupLocation" placeholder="Detecting your location..." readonly>
+                <div class="gps-status" id="gps-status">📍 Requesting GPS...</div>
+            </div>
 
             <button type="submit" class="submit-btn" id="signupBtn">Create Account</button>
         </form>
 
         <div class="small-text">Your location is used for emergency matching only.</div>
-
     </div>
 
-    <script type="module">
-        const signinTab = document.getElementById("signinTab");
-        const signupTab = document.getElementById("signupTab");
-        const signinForm = document.getElementById("signinForm");
-        const signupForm = document.getElementById("signupForm");
-
-        signinTab.onclick = () => {
-            signinTab.classList.add("active");
-            signupTab.classList.remove("active");
-            signinForm.classList.add("active");
-            signupForm.classList.remove("active");
+    <script>
+        // ── TAB SWITCHER ──────────────────────────────────────────
+        function switchTab(tab) {
+            var signin = document.getElementById('signinTab');
+            var signup = document.getElementById('signupTab');
+            var signinForm = document.getElementById('signinForm');
+            var signupForm = document.getElementById('signupForm');
+            if (tab === 'signin') {
+                signin.classList.add('active');
+                signup.classList.remove('active');
+                signinForm.classList.add('active');
+                signupForm.classList.remove('active');
+            } else {
+                signup.classList.add('active');
+                signin.classList.remove('active');
+                signupForm.classList.add('active');
+                signinForm.classList.remove('active');
+            }
         }
 
-        signupTab.onclick = () => {
-            signupTab.classList.add("active");
-            signinTab.classList.remove("active");
-            signupForm.classList.add("active");
-            signinForm.classList.remove("active");
+        // ── ERROR/SUCCESS DISPLAY ──────────────────────────────────
+        function showError(id, msg) {
+            var el = document.getElementById(id);
+            el.textContent = msg;
+            el.classList.add('show');
+        }
+        function hideError(id) {
+            var el = document.getElementById(id);
+            el.classList.remove('show');
+        }
+        function showSuccess(id, msg) {
+            var el = document.getElementById(id);
+            el.textContent = msg;
+            el.classList.add('show');
         }
 
-        // Detect Location
+        // ── GPS DETECTION ──────────────────────────────────────────
+        var userLat = null, userLng = null;
+        var gpsStatus = document.getElementById('gps-status');
+
+        function setLocation(lat, lng, source) {
+            userLat = lat; userLng = lng;
+            document.getElementById('signupLocation').value = lat + ',' + lng;
+            gpsStatus.textContent = source === 'gps'
+                ? '✅ GPS location detected'
+                : '⚠️ Approximate location (IP-based). Enable GPS for accuracy.';
+        }
+
+        function tryIPFallback() {
+            gpsStatus.textContent = '🌐 Trying IP-based location...';
+            fetch('https://ipapi.co/json/')
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data && data.latitude) {
+                        setLocation(data.latitude, data.longitude, 'ip');
+                    } else {
+                        // Last resort — Kolkata coordinates
+                        setLocation(22.5726, 88.3639, 'default');
+                        gpsStatus.textContent = '⚠️ Could not detect location. Using default.';
+                    }
+                })
+                .catch(function() {
+                    setLocation(22.5726, 88.3639, 'default');
+                    gpsStatus.textContent = '⚠️ Location detection failed. Using default.';
+                });
+        }
+
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
-                position => {
-                    document.getElementById("signupLocation").value =
-                        position.coords.latitude + "," + position.coords.longitude;
-                },
-                () => {
-                    // Fallback to IP
-                    fetch('https://ipapi.co/json/')
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.latitude && data.longitude) {
-                                document.getElementById("signupLocation").value = 
-                                    data.latitude + "," + data.longitude;
-                            } else {
-                                document.getElementById("signupLocation").value = "51.505,-0.09"; // London fallback
-                            }
-                        }).catch(() => {
-                            document.getElementById("signupLocation").value = "51.505,-0.09";
-                        });
-                }
+                function(pos) { setLocation(pos.coords.latitude, pos.coords.longitude, 'gps'); },
+                function() { tryIPFallback(); },
+                { timeout: 8000, enableHighAccuracy: true }
             );
+        } else {
+            tryIPFallback();
         }
 
-        // Signup Logic
-        signupForm.addEventListener("submit", async (e) => {
+        // ── SIGNUP ────────────────────────────────────────────────
+        document.getElementById('signupForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            hideError('signup-error');
 
-            const name = document.getElementById("signupName").value;
-            const email = document.getElementById("signupEmail").value;
-            const password = document.getElementById("signupPassword").value;
-            const phone = document.getElementById("signupPhone").value;
-            const role = document.getElementById("signupRole").value;
-            const location = document.getElementById("signupLocation").value;
+            var name = document.getElementById('signupName').value.trim();
+            var email = document.getElementById('signupEmail').value.trim();
+            var password = document.getElementById('signupPassword').value;
+            var phone = document.getElementById('signupPhone').value.trim();
+            var role = document.getElementById('signupRole').value;
+            var location = document.getElementById('signupLocation').value || '22.5726,88.3639';
+
+            if (!name || !email || !password || !phone || !role) {
+                showError('signup-error', 'Please fill in all fields.');
+                return;
+            }
+            if (password.length < 6) {
+                showError('signup-error', 'Password must be at least 6 characters.');
+                return;
+            }
+            if (!/^\d{10,15}$/.test(phone)) {
+                showError('signup-error', 'Phone number must be 10–15 digits.');
+                return;
+            }
+
+            var btn = document.getElementById('signupBtn');
+            btn.disabled = true;
+            btn.textContent = 'Creating account...';
 
             try {
-                const res = await fetch("/api/auth/register", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        name,
-                        email,
-                        password,
-                        phone,
-                        role,
-                        location
-                    })
+                var res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, phone, role, location })
                 });
-                const data = await res.json();
-                
+                var data = await res.json();
+
                 if (res.ok) {
-                    localStorage.setItem("token", data.token);
-                    localStorage.setItem("user", JSON.stringify({ email: data.user.email, uid: data.user._id, name: data.user.name, phone: phone, role: data.user.role }));
-                    window.location.href = "index.html";
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify({
+                        email: data.user.email,
+                        uid: data.user._id,
+                        name: data.user.name,
+                        phone: phone,
+                        role: data.user.role
+                    }));
+                    showSuccess('signup-success', '✅ Account created! Redirecting...');
+                    setTimeout(function() { window.location.href = 'index.html'; }, 1000);
                 } else {
-                    alert("Signup failed: " + (data.msg || data.error || "Unknown error"));
+                    showError('signup-error', data.msg || data.error || 'Signup failed. Please try again.');
+                    btn.disabled = false;
+                    btn.textContent = 'Create Account';
                 }
             } catch (err) {
-                console.error(err);
-                alert("Signup failed: " + err.message);
+                showError('signup-error', 'Network error: ' + err.message + '. Make sure you are connected.');
+                btn.disabled = false;
+                btn.textContent = 'Create Account';
             }
         });
 
-        // Login Logic
-        signinForm.addEventListener("submit", async (e) => {
+        // ── LOGIN ─────────────────────────────────────────────────
+        document.getElementById('signinForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            hideError('login-error');
 
-            const email = document.getElementById("loginEmail").value;
-            const password = document.getElementById("loginPassword").value;
+            var email = document.getElementById('loginEmail').value.trim();
+            var password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                showError('login-error', 'Please enter your email and password.');
+                return;
+            }
+
+            var btn = document.getElementById('loginBtn');
+            btn.disabled = true;
+            btn.textContent = 'Signing in...';
 
             try {
-                const res = await fetch("/api/auth/login", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                var res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
-                const data = await res.json();
+                var data = await res.json();
 
                 if (res.ok) {
-                    localStorage.setItem("token", data.token);
-                    localStorage.setItem("user", JSON.stringify({
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify({
                         email: data.user.email,
                         uid: data.user._id,
                         name: data.user.name,
                         role: data.user.role
                     }));
-                    window.location.href = "index.html";
+                    window.location.href = 'index.html';
                 } else {
-                    alert("Login failed: " + (data.msg || data.error || "Invalid credentials"));
+                    showError('login-error', data.msg || data.error || 'Invalid email or password.');
+                    btn.disabled = false;
+                    btn.textContent = 'Sign In';
                 }
             } catch (err) {
-                console.error(err);
-                alert("Login failed: " + err.message);
+                showError('login-error', 'Network error: ' + err.message);
+                btn.disabled = false;
+                btn.textContent = 'Sign In';
             }
         });
+
+        // Redirect if already logged in
+        if (localStorage.getItem('token')) {
+            window.location.href = 'index.html';
+        }
     </script>
-
 </body>
-
 </html>
