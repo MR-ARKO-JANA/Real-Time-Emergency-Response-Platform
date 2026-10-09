@@ -1,17 +1,24 @@
 const authService = require('../../services/auth.service');
 const logger = require('../../loaders/logger');
 
-exports.syncUser = async (req, res) => {
+exports.register = async (req, res) => {
     try {
-        const result = await authService.syncUser(req.body);
+        const result = await authService.register(req.body);
         return res.status(result.status).json(result.data);
     } catch (err) {
-        logger.error('Sync Error:', err);
-        // Handle MongoDB duplicate key errors
-        if (err.code === 11000) {
-            const field = Object.keys(err.keyPattern || {})[0] || 'field';
-            return res.status(409).json({ msg: `An account with this ${field} already exists. Please sign in instead.` });
-        }
+        logger.error('Register Error:', err);
+        res.status(500).json({ msg: err.message || 'Server Error' });
+    }
+};
+
+exports.login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) return res.status(400).json({ msg: 'Please provide email and password' });
+        const result = await authService.login(email, password);
+        return res.status(result.status).json(result.data);
+    } catch (err) {
+        logger.error('Login Error:', err);
         res.status(500).json({ msg: err.message || 'Server Error' });
     }
 };

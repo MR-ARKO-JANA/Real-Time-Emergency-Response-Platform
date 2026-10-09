@@ -36,10 +36,41 @@ async function init() {
       🛡️  Server listening on port: ${PORT} (0.0.0.0) 🛡️
       ################################################
     `);
+            startKeepAlive();
         });
     } catch (err) {
         logger.error('Failed to start server:', err);
         process.exit(1);
+    }
+}
+
+function startKeepAlive() {
+    const https = require('https');
+    const http = require('http');
+    const url = process.env.RENDER_EXTERNAL_URL || process.env.SERVER_URL || process.env.PING_URL;
+
+    if (!url) {
+        logger.info('ℹ️ Keep-alive: Set RENDER_EXTERNAL_URL or SERVER_URL in environment if self-ping is required.');
+        return;
+    }
+
+    const pingUrl = url.endsWith('/ping') || url.endsWith('/health') ? url : `${url.replace(/\/$/, '')}/ping`;
+    logger.info(`🔁 Starting keep-alive background ping task for: ${pingUrl} (every 10 min)`);
+
+    const interval = 10 * 60 * 1000; // 10 minutes
+
+    // Initial ping after 1 minute
+    setTimeout(doPing, 60 * 1000);
+    // Recurring ping every 10 minutes
+    setInterval(doPing, interval);
+
+    function doPing() {
+        const client = pingUrl.startsWith('https') ? https : http;
+        client.get(pingUrl, (res) => {
+            logger.info(`[Keep-Alive] Ping response: ${res.statusCode}`);
+        }).on('error', (err) => {
+            logger.error(`[Keep-Alive] Ping error:`, err.message);
+        });
     }
 }
 

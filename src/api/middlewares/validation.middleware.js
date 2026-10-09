@@ -2,10 +2,10 @@ const Joi = require('joi');
 
 // Validation schemas
 const schemas = {
-    syncUser: Joi.object({
-        firebaseUid: Joi.string().required(),
+    registerUser: Joi.object({
         name: Joi.string().min(2).max(100).required(),
         email: Joi.string().email().required(),
+        password: Joi.string().min(6).required(),
         phone: Joi.string().pattern(/^\d{10,15}$/).required(),
         role: Joi.string().valid(
             'citizen', 'responder', 'admin',
@@ -79,7 +79,7 @@ const validate = (schemaName) => {
 };
 
 // Export named validators for convenience
-const validateRegister = validate('syncUser');
+const validateRegister = validate('registerUser');
 const validateUpdateProfile = validate('updateProfile');
 const validateSOSGuidance = validate('aiGuidance');
 const validateTriggerSOS = validate('triggerSOS');

@@ -57,13 +57,13 @@ module.exports = async ({ app }) => {
     app.use(express.json());
 
     // NoSQL Injection Protection
-    app.use(mongoSanitize());
+    // app.use(mongoSanitize());
     
     // Static Files
     app.use(express.static(path.join(process.cwd(), 'public')));
 
-    // Health Check Endpoint (for Docker/CI/CD)
-    app.get('/health', (req, res) => {
+    // Health Check & Ping Endpoints (for Docker/Render keep-alive)
+    app.get(['/health', '/ping'], (req, res) => {
         res.status(200).json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
     });
 

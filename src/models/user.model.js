@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const UserSchema = new mongoose.Schema({
     name: {
@@ -15,10 +16,9 @@ const UserSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    firebaseUid: {
+    password: {
         type: String,
-        required: true,
-        unique: true
+        required: true
     },
     skills: [{
         type: String
@@ -53,5 +53,20 @@ const UserSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 UserSchema.index({ location: '2dsphere' });
+
+UserSchema.pre('save', async function (next) {
+    if (!this.isModified('password')) return next();
+    try {
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
+        next();
+    } catch (err) {
+        next(err);
+    }
+});
+
+UserSchema.methods.comparePassword = async function (candidatePassword) {
+    return await bcrypt.compare(candidatePassword, this.password);
+};
 
 module.exports = mongoose.model('User', UserSchema);

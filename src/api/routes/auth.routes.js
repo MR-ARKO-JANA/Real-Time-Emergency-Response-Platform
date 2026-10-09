@@ -4,42 +4,9 @@ const authController = require('../controllers/auth.controller');
 const { validateRegister, validateUpdateProfile } = require('../middlewares/validation.middleware');
 const { authLimiter } = require('../middlewares/security.middleware');
 
-/**
- * @openapi
- * /api/auth/sync:
- *   post:
- *     summary: Sync Firebase user to MongoDB
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - firebaseUid
- *               - name
- *               - email
- *             properties:
- *               firebaseUid:
- *                 type: string
- *               name:
- *                 type: string
- *               email:
- *                 type: string
- *               role:
- *                 type: string
- *                 enum: [citizen, responder, admin]
- *               location:
- *                 type: string
- *     responses:
- *       201:
- *         description: User synced correctly
- *       400:
- *         description: Validation error
- */
-router.post('/sync', authLimiter, validateRegister, authController.syncUser);
+router.post('/register', authLimiter, authController.register); // validateRegister needs update if it still expects firebaseUid
+router.post('/login', authLimiter, authController.login);
 router.get('/profile/:uid', authLimiter, authController.getProfile);
-router.put('/profile/:uid', authLimiter, validateUpdateProfile, authController.updateProfile);
+router.put('/profile/:uid', authLimiter, authController.updateProfile);
 
 module.exports = router;

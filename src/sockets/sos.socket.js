@@ -22,17 +22,35 @@ module.exports = function (io) {
             let userSkill = data.role;
 
             try {
-                // If we have a firebase UID but missing the display name/role, ask the DB
-                if (data.uid && mongoose.connection.readyState === 1 && (!userName || !userSkill)) {
-                    const dbUser = await User.findOne({ firebaseUid: data.uid });
+                // If we have a firebase UID, sync their location to DB for $near dispatch
+                if (data.uid && mongoose.connection.readyState === 1) {
+                    const dbUser = await User.findOneAndUpdate(
+                        { _id: data.uid },
+                        { 
+                            $set: { 
+                                location: { type: 'Point', coordinates: [data.lng, data.lat] } 
+                            } 
+                        },
+                        { new: true } // Don't create if not found, just update
+                    );
+                    
                     if (dbUser) {
                         userName = dbUser.name;
                         userSkill = dbUser.role;
                         socket.userPhone = dbUser.phone; // Store phone on socket
+                    } else if (!userName || !userSkill) {
+                        // Fallback lookup if update failed but we need data
+                        const fallbackUser = await User.findOne({ _id: data.uid });
+                        if (fallbackUser) {
+                            userName = fallbackUser.name;
+                            userSkill = fallbackUser.role;
+                            socket.userPhone = fallbackUser.phone;
+                        }
                     }
                 }
             } catch (err) {
                 // Silent DB lookup failure
+                logger.error(`Location sync failed: ${err.message}`);
             }
 
             connectedUsers.set(socket.id, {
@@ -99,7 +117,7 @@ module.exports = function (io) {
                 activeSOS.set(sosEvent.id, sosEvent);
                 socket.join(`incident_${sosEvent.id}`);
 
-                const targetedResponders = incidentService.matchResponders(data, connectedUsers, socket.id);
+                const targetedResponders = await incidentService.matchResponders(data, connectedUsers, socket.id);
 
                 targetedResponders.forEach(r => {
                     io.to(r.sId).emit('new_sos', {
