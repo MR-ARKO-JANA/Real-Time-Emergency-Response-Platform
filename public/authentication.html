@@ -175,10 +175,27 @@
 
         // Detect Location
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(position => {
-                document.getElementById("signupLocation").value =
-                    position.coords.latitude + "," + position.coords.longitude;
-            });
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    document.getElementById("signupLocation").value =
+                        position.coords.latitude + "," + position.coords.longitude;
+                },
+                () => {
+                    // Fallback to IP
+                    fetch('https://ipapi.co/json/')
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.latitude && data.longitude) {
+                                document.getElementById("signupLocation").value = 
+                                    data.latitude + "," + data.longitude;
+                            } else {
+                                document.getElementById("signupLocation").value = "51.505,-0.09"; // London fallback
+                            }
+                        }).catch(() => {
+                            document.getElementById("signupLocation").value = "51.505,-0.09";
+                        });
+                }
+            );
         }
 
         // Signup Logic

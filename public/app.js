@@ -553,7 +553,39 @@ document.addEventListener('DOMContentLoaded', () => {
             skill: userMeta.role || 'citizen'
           });
         },
-        () => { /* Geolocation failed */ },
+        (err) => { 
+          if (err.code === 1) {
+            showToast('⚠️ Location access denied. Using approximate IP location.');
+          } else {
+            showToast('⚠️ GPS signal weak. Using approximate IP location.');
+          }
+          // IP Geolocation Fallback
+          fetch('https://ipapi.co/json/')
+            .then(res => res.json())
+            .then(data => {
+              if (data.latitude && data.longitude) {
+                userLat = data.latitude;
+                userLng = data.longitude;
+                map.setView([userLat, userLng], 13);
+                userMarker.setLatLng([userLat, userLng]);
+                const coordsEl = document.getElementById('map-coords');
+                if (coordsEl) coordsEl.textContent = `${userLat.toFixed(4)}° N, ${userLng.toFixed(4)}° W (IP Fallback)`;
+                const gpsEl = document.getElementById('footer-gps-accuracy');
+                if (gpsEl) gpsEl.textContent = `±5000M`;
+                
+                const userMeta = JSON.parse(localStorage.getItem('user') || '{}');
+                socket.emit('update_location', {
+                  lat: userLat,
+                  lng: userLng,
+                  uid: userMeta.uid,
+                  name: userMeta.name || userMeta.email?.split('@')[0],
+                  phone: userMeta.phone,
+                  skill: userMeta.role || 'citizen'
+                });
+              }
+            })
+            .catch(() => showToast('Failed to detect location entirely. Defaulting to London.'));
+        },
         { enableHighAccuracy: true }
       );
     }
