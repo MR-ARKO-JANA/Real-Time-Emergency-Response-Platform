@@ -1044,7 +1044,7 @@ document.addEventListener('DOMContentLoaded', () => {
     statEta.innerText = '--';
     generateAIGuidance(null);
 
-    if (SpeechRecognition) setMicState(true);
+    if (window.SpeechRecognition || window.webkitSpeechRecognition) setMicState(true);
   }
 
   // ═══════════════ SOCKET EVENTS ═══════════════
@@ -1054,6 +1054,15 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => { statNotified.innerText = '12'; }, 1000);
   });
 
+  socket.on('sos_failed', (data) => {
+    // SOS failed to broadcast — reset UI to idle
+    isBroadcasting = false;
+    if (activePanel) activePanel.classList.add('hidden');
+    if (idlePanel) idlePanel.classList.remove('hidden');
+    stopSosSiren();
+    showToast(`⚠️ SOS Failed: ${data.message || 'Could not broadcast. Please call 112 directly.'}`, 'error');
+    console.error('[SOS Failed]', data.message);
+  });
 
   socket.on('responder_assigned', (data) => {
     if (data.sosId === currentSosId) addResponder(data.responder);

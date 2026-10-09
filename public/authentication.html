@@ -216,14 +216,25 @@
                     if (data && data.latitude) {
                         setLocation(data.latitude, data.longitude, 'ip');
                     } else {
-                        // Last resort — Kolkata coordinates
-                        setLocation(22.5726, 88.3639, 'default');
-                        gpsStatus.textContent = '⚠️ Could not detect location. Using default.';
+                        throw new Error("Primary API no data");
                     }
                 })
                 .catch(function() {
-                    setLocation(22.5726, 88.3639, 'default');
-                    gpsStatus.textContent = '⚠️ Location detection failed. Using default.';
+                    // Try secondary IP API
+                    fetch('https://ipwho.is/')
+                        .then(function(res) { return res.json(); })
+                        .then(function(data) {
+                            if (data.success && data.latitude) {
+                                setLocation(data.latitude, data.longitude, 'ip');
+                            } else {
+                                setLocation(22.5726, 88.3639, 'default');
+                                gpsStatus.textContent = '⚠️ Could not detect location. Using default.';
+                            }
+                        })
+                        .catch(function() {
+                            setLocation(22.5726, 88.3639, 'default');
+                            gpsStatus.textContent = '⚠️ Location detection failed. Using default.';
+                        });
                 });
         }
 

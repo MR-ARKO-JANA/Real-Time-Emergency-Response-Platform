@@ -72,10 +72,25 @@ module.exports = function (io) {
                 const urg = data.urgency ? ` [urgency=${data.urgency.toUpperCase()}]` : '';
                 logger.info(`[VOICE SOS] Automatic ${data.type.toUpperCase()} trigger activated${conf}${urg}: ${data.description}`);
             }
+
+            // Ensure user session exists; create a temporary one if not yet registered
+            if (!connectedUsers.has(socket.id)) {
+                connectedUsers.set(socket.id, {
+                    id: socket.id, // temporary id
+                    lat: data.lat,
+                    lng: data.lng,
+                    name: `User-${socket.id.substring(0, 4)}`,
+                    skill: 'citizen',
+                    phone: 'N/A'
+                });
+            }
+
+            const crisisTypes = data.types || [data.type];
             const sosEvent = {
                 id: `SOS-${Date.now()}`,
                 broadcasterId: socket.id,
                 type: data.type,
+                crisisTypes,
                 lat: data.lat,
                 lng: data.lng,
                 isAnon: data.isAnon,
@@ -89,28 +104,24 @@ module.exports = function (io) {
             try {
                 // 1. Save new SOS incident to MongoDB
                 const userSession = connectedUsers.get(socket.id);
-                if (!userSession) {
-                    socket.emit('sos_failed', { message: "Authentication required to broadcast SOS" });
-                    return;
-                }
                 const bId = mongoose.Types.ObjectId.isValid(userSession.id) ? userSession.id : new mongoose.Types.ObjectId();
 
                 if (mongoose.connection.readyState === 1) {
                     const newDbSos = new SOS({
                         broadcaster: bId,
-                        crisisTypes: data.types || [data.type],
+                        crisisTypes,
                         location: { type: 'Point', coordinates: [data.lng, data.lat] },
                         isAnonymous: data.isAnon
                     });
                     await newDbSos.save();
                     sosEvent.dbId = newDbSos._id.toString();
                 } else {
-                    throw new Error("MongoDB not connected");
+                    // DB offline — proceed with in-memory only (don't block SOS)
+                    logger.warn('[SOS] MongoDB not connected — SOS will proceed in-memory only.');
                 }
             } catch (dbError) {
-                logger.error(`[SOS FAILED] Failed to save SOS to database: ${dbError.message}`);
-                socket.emit('sos_failed', { message: "Failed to persist SOS event to the dispatch system. Please use SMS fallback." });
-                return; // Stop execution, do NOT broadcast fake incidents
+                // DB save failed — proceed with in-memory so SOS still broadcasts
+                logger.error(`[SOS DB WARN] Could not persist SOS to DB: ${dbError.message}. Continuing in-memory.`);
             }
 
             try {
@@ -178,6 +189,12 @@ module.exports = function (io) {
                 io.to(`incident_${data.sosId}`).emit('chat_closed', { sosId: data.sosId });
                 activeSOS.delete(data.sosId);
                 io.emit('admin_update', Array.from(activeSOS.values()));
+
+                // Update DB record status to resolved
+                if (event.dbId && mongoose.connection.readyState === 1) {
+                    SOS.findByIdAndUpdate(event.dbId, { $set: { status: 'resolved' } })
+                        .catch(err => logger.error('[Resolve SOS] DB update failed:', err.message));
+                }
             }
         });
 

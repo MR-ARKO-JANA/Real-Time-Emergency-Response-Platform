@@ -26,11 +26,11 @@ async function matchResponders(data, connectedUsers, broadcasterSocketId) {
 
     let targetedResponders = [];
 
-    // Map connected users by their uid for quick lookup
+    // Map connected users by their uid (as string) for quick lookup
     const uidToSocket = new Map();
     for (const [sId, uData] of connectedUsers.entries()) {
         if (sId !== broadcasterSocketId) {
-            uidToSocket.set(uData.id, { sId, uData });
+            uidToSocket.set(String(uData.id), { sId, uData });
         }
     }
 
@@ -52,7 +52,7 @@ async function matchResponders(data, connectedUsers, broadcasterSocketId) {
         ]);
 
         for (const user of nearbyUsers) {
-            const uid = user._id;
+            const uid = user._id.toString(); // Convert ObjectId → string for Map lookup
             if (uidToSocket.has(uid)) {
                 const { sId, uData } = uidToSocket.get(uid);
                 const dist = user.distance;
