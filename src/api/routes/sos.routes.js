@@ -54,6 +54,10 @@ router.get('/alerts', sosLimiter, authMiddleware, sosController.getAllSos);
  *       200:
  *         description: Service is healthy
  */
-router.get('/health', (_req, res) => res.json({ status: 'ok', service: 'sos' }));
+router.get('/health', (_req, res) => res.json({
+    status: 'healthy',
+    service: 'SOS Subsystem',
+    timestamp: new Date().toISOString()
+}));
 
 module.exports = router;
