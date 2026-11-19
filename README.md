@@ -32,7 +32,7 @@ A full-stack emergency response system that connects people in crisis with nearb
 ## 📋 Quick Start
 
 ### Prerequisites
-- Node.js (v18+)
+- Node.js (v22+)
 - MongoDB (Local or Atlas)
 - Firebase Project
 - Google Gemini API Key
@@ -86,6 +86,12 @@ A full-stack emergency response system that connects people in crisis with nearb
 ## 🌐 Deployment
 
 NearHelp is containerized and ready for cloud deployment.
+
+### Netlify
+
+The repository's `netlify.toml` publishes the existing `public` directory without a build step. This serves the homepage at `/` and the existing pages at `/admin.html` and `/authentication.html`.
+
+This configuration hosts the static frontend. The Express API and Socket.io backend require a separate server deployment; publishing static files does not start `npm start`.
 
 ### Docker (Recommended)
 ```bash
