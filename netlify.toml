@@ -1,0 +1,9 @@
+# The site's static frontend lives in /public (index.html, admin.html, app.js, ...).
+# Without this, Netlify published the repository root, which has no index.html,
+# so every URL returned "Page not found".
+[build]
+  publish = "public"
+  command = "echo 'No build step: serving static files from public/'"
+
+[build.environment]
+  NODE_VERSION = "22"
